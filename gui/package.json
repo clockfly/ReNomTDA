@@ -1,7 +1,7 @@
 {
-  "name": "ReNomTDAGUI",
-  "displayName": "ReNom TDA GUI",
-  "version": "0.0.0",
+  "name": "ReNomTDA",
+  "displayName": "ReNom TDA",
+  "version": "1.0.0",
   "description": "",
   "main": "js/index.js",
   "scripts": {

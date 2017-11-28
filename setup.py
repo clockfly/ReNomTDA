@@ -7,6 +7,6 @@ requires = [
 setup(
     install_requires=requires,
     name="renom_tda",
-    version="0.0.1",
+    version="1.0.0",
     packages=find_packages(),
 )
