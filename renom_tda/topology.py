@@ -112,7 +112,7 @@ class Topology(object):
             # metricがNoneならdataをそのまま使う
             dist_matrix = data
 
-        # lensによって射影されるデータの次元数は異なるのでNoneで初期化
+        # lensによって射影後の次元数は異なるのでNoneで初期化
         self.point_cloud = None
         if (lens is not None) and (len(lens) > 0):
             for l in lens:
@@ -183,7 +183,8 @@ class Topology(object):
         if self.verbose == 1:
             print("mapping start, please wait...")
 
-        # resolutionの次元数乗個のhypercubeに分割する
+        # hypercubeに分割する
+        # resolution: 10, point_cloudが2次元なら、10x10の100個のhypercubeを作る
         for i in itertools.product(np.arange(resolution), repeat=self.point_cloud.shape[1]):
             # hypercubeの上限、下限を設定する
             floor = np.array(i) * chunk_width - overlap_width
@@ -210,6 +211,7 @@ class Topology(object):
                         # ラベルが-1の点はノイズとする
                         if label != -1:
                             hypercube_value = list(masked_data_indexs[clusterer.labels_ == label])
+                            # 同じ値を持つhypercubeは作らない
                             if hypercube_value not in self.hypercubes.values():
                                 self.hypercubes.update(
                                     {created_node_count: hypercube_value})

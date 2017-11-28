@@ -1,7 +1,7 @@
 {
   "name": "ReNomTDA",
   "displayName": "ReNom TDA",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "js/index.js",
   "scripts": {
