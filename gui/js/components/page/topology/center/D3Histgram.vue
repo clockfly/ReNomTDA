@@ -13,14 +13,15 @@ export default {
   },
   methods: {
     draw_graph: function() {
+      let data_color_values;
+      let statistic_value;
       if (this.id === "hist"){
-        let data_color_values = this.$store.state.topology.data_color_values;
-        let statistic_value = this.$store.state.topology.statistic_value;
+        data_color_values = this.$store.state.topology.data_color_values;
+        statistic_value = this.$store.state.topology.statistic_value;
       }else{
-        let data_color_values = this.$store.state.topology.data_color_values_col2;
-        let statistic_value = this.$store.state.topology.statistic_value_col2;
+        data_color_values = this.$store.state.topology.data_color_values_col2;
+        statistic_value = this.$store.state.topology.statistic_value_col2;
       }
-
       let formatCount = d3.format(",.0f");
 
       let margin = {top: 10, right: 30, bottom: 50, left: 50};

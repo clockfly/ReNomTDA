@@ -51,6 +51,8 @@ let TopologyState = {
   neighbors_col2: 5,
   train_index_col2: undefined,
 
+  pca_result: undefined,
+
   // 表示に関するパラメータ、真ん中上のヘッダーで変更する
   show_histogram: false,
   show_spring: false,

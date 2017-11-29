@@ -22,6 +22,8 @@ let TopologyMutation = {
     state.clustering_index_col2 = 0;
     state.class_count_col2 = 3;
 
+    state.pca_result = undefined;
+
     state.show_histogram = false;
     state.show_spring = false;
 
@@ -55,6 +57,7 @@ let TopologyMutation = {
     state.node_categorical_data = undefined;
     state.node_data = undefined;
     state.show_category = 0;
+    state.pca_result = undefined;
   },
   reset_colors(state) {
     state.colors = undefined;
@@ -186,6 +189,7 @@ let TopologyMutation = {
     state.data_color_values_col2 = payload.data_color_values_col2;
     state.statistic_value = payload.statistic_value;
     state.statistic_value_col2 = payload.statistic_value_col2;
+    state.pca_result = payload.pca_result;
   },
 
   set_search_result(state, payload) {

@@ -16,8 +16,12 @@ let TopologyAction = {
     return axios.post('/api/load_file', fd)
       .then(function(response){
         let error = response.data.error;
-        if (error){
+        if (error == "LF0001"){
           alert("File not found. Please try again.");
+          context.commit('set_loading');
+          return
+        }else if(error == "LF0002") {
+          alert("File is too learge. Max file size is 10,000 rows.");
           context.commit('set_loading');
           return
         }
@@ -91,7 +95,8 @@ let TopologyAction = {
           'data_color_values': response.data.histogram_data[0].data_color_values,
           'data_color_values_col2': response.data.histogram_data[1].data_color_values,
           "statistic_value": response.data.histogram_data[0].statistic_value,
-          "statistic_value_col2": response.data.histogram_data[1].statistic_value
+          "statistic_value_col2": response.data.histogram_data[1].statistic_value,
+          "pca_result": response.data.pca_result
         });
         context.commit('set_loading');
       });
