@@ -1,4 +1,7 @@
 let TopologyMutation = {
+  reset_data_histogram(state) {
+    state.numerical_data = undefined;
+  },
   reset_all(state) {
     state.layout_columns= 0;
     state.algorithm_index = 0;
@@ -83,6 +86,7 @@ let TopologyMutation = {
     state.filename = payload.filename;
     state.categorical_data_labels = payload.categorical_data_labels;
     state.numerical_data_labels = payload.numerical_data_labels;
+    state.numerical_data = payload.numerical_data;
     state.numerical_data_mins = payload.numerical_data_mins;
     state.numerical_data_maxs = payload.numerical_data_maxs;
     state.numerical_data_means = payload.numerical_data_means;

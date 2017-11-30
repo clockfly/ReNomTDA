@@ -31,7 +31,7 @@ from sklearn import cluster, ensemble, neighbors, preprocessing, svm
 import renom as rm
 from renom.optimizer import Adam
 
-from renom_tda.lens import PCA, TSNE, MDS
+from renom_tda.lens import PCA, TSNE, MDS, Isomap
 from renom_tda.lens_renom import AutoEncoder
 from renom_tda.topology import SearchableTopology
 
@@ -391,7 +391,7 @@ def load_file():
         numerical_data_means = numerical_data.mean(axis=0)
         numerical_data_means = np.around(numerical_data_means, 2)
 
-        body = json.dumps({"numerical_data": numerical_data.tolist(),
+        body = json.dumps({"numerical_data": np.sort(numerical_data.T).tolist(),
                            "categorical_data_labels": categorical_data_labels.tolist(),
                            "numerical_data_labels": numerical_data_labels.tolist(),
                            "numerical_data_mins": numerical_data_mins.tolist(),
@@ -451,6 +451,7 @@ def _dimension_reduction(topology, params, calc_data):
     algorithms = [PCA(components=[0, 1]),
                   TSNE(components=[0, 1]),
                   MDS(components=[0, 1]),
+                  Isomap(components=[0, 1]),
                   AutoEncoder(epoch=200,
                               batch_size=100,
                               network=AutoEncoder2Layer(normalized_calc_data.shape[1]),
@@ -607,7 +608,7 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
             # アルゴリズムが変わっていたら次元削減
             _dimension_reduction(topology, canvas_params[key], calc_data)
             if canvas_params[key]["algorithm"] == 0:
-                sort_index = np.argsort(topology.lens[0].axis, axis=1)
+                sort_index = np.argsort(np.abs(topology.lens[0].axis), axis=1)
                 pca_result["axis"] = np.around(topology.lens[0].axis, 3).tolist()
                 pca_result["contribution_ratio"] = np.around(np.sum(topology.lens[0].contribution_ratio), 3)
                 pca_result["top_index"] = sort_index[:, -3:].tolist()

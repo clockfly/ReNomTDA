@@ -1,20 +1,22 @@
 <template>
   <div id="center">
     <div id="canvas_header">
-      <button id="split_layout_button" v-on:click="split_layout">全画面・2画面 <i class="fa fa-window-restore" aria-hidden="true"></i></button>
+      <div class="canvas_header_button_area">
+        <button id="split_layout_button" v-on:click="split_layout">全画面・2画面 <i class="fa fa-window-restore" aria-hidden="true"></i></button>
 
-      <button id="show_histogram_button" v-on:click="show_histogram">ヒストグラム <i class="fa fa-bar-chart" aria-hidden="true"></i></button>
+        <button id="show_histogram_button" v-on:click="show_histogram">ヒストグラム <i class="fa fa-bar-chart" aria-hidden="true"></i></button>
 
-      <button id="show_spring_button" v-on:click="show_spring">TDA 3D <i class="fa fa-expand" aria-hidden="true"></i></button>
+        <button id="show_spring_button" v-on:click="show_spring">TDA 3D <i class="fa fa-expand" aria-hidden="true"></i></button>
 
-      <button id="reset_button" v-on:click="reset">リセット <i class="fa fa-refresh" aria-hidden="true"></i></button>
+        <button id="reset_button" v-on:click="reset">リセット <i class="fa fa-refresh" aria-hidden="true"></i></button>
+      </div>
 
       <div class="pca_result" v-if="show_pca_result">
-        <div v-if="pca_result">
-          第一主成分：{{ calc_labels[pca_result.top_index[0][0]] }}:{{ pca_result.axis[0][pca_result.top_index[0][0]] }}, {{ calc_labels[pca_result.top_index[0][1]] }}:{{ pca_result.axis[0][pca_result.top_index[0][1]] }}, {{ calc_labels[pca_result.top_index[0][2]] }}:{{ pca_result.axis[0][pca_result.top_index[0][2]] }}</div>
-        <div v-if="pca_result">
-          第二主成分：{{ calc_labels[pca_result.top_index[1][0]] }}:{{ pca_result.axis[1][pca_result.top_index[1][0]] }}, {{ calc_labels[pca_result.top_index[1][1]] }}:{{ pca_result.axis[1][pca_result.top_index[1][1]] }}, {{ calc_labels[pca_result.top_index[1][2]] }}:{{ pca_result.axis[1][pca_result.top_index[1][2]] }}</div>
-        <div v-if="pca_result">寄与率：{{ pca_result.contribution_ratio }}</div>
+        <span v-if="pca_result">
+          第一主成分：{{ calc_labels[pca_result.top_index[0][0]] }}:{{ pca_result.axis[0][pca_result.top_index[0][0]] }}, {{ calc_labels[pca_result.top_index[0][1]] }}:{{ pca_result.axis[0][pca_result.top_index[0][1]] }}, {{ calc_labels[pca_result.top_index[0][2]] }}:{{ pca_result.axis[0][pca_result.top_index[0][2]] }}</span><br>
+        <span v-if="pca_result">
+          第二主成分：{{ calc_labels[pca_result.top_index[1][0]] }}:{{ pca_result.axis[1][pca_result.top_index[1][0]] }}, {{ calc_labels[pca_result.top_index[1][1]] }}:{{ pca_result.axis[1][pca_result.top_index[1][1]] }}, {{ calc_labels[pca_result.top_index[1][2]] }}:{{ pca_result.axis[1][pca_result.top_index[1][2]] }}</span><br>
+        <span v-if="pca_result">寄与率：{{ pca_result.contribution_ratio }}</span>
       </div>
     </div>
 
@@ -103,8 +105,14 @@ export default {
       return this.$store.state.topology.pca_result
     },
     show_pca_result() {
-      if(this.$store.state.topology.algorithm_index == 0 || this.$store.state.topology.algorithm_index_col2 == 0){
-        return true
+      if(this.$store.getters.layout_columns == 0) {
+        if(this.$store.state.topology.algorithm_index == 0){
+          return true
+        }
+      }else if(this.$store.getters.layout_columns == 1) {
+        if(this.$store.state.topology.algorithm_index == 0 || this.$store.state.topology.algorithm_index_col2 == 0){
+          return true
+        }
       }
       return false
     },
@@ -142,14 +150,17 @@ export default {
   #canvas_header {
     width: 100%;
     height: 5%;
+    .canvas_header_button_area {
+      float: left;
+      height: 100%;
+    }
     #split_layout_button, #show_histogram_button, #show_spring_button, #reset_button {
-      height: 90%;
+      height: 100%;
       margin-top: 4px;
       padding: 0 8px;
     }
     .pca_result {
-      display: inline;
-      width: 200px;
+      float: left;
       font-size: 9px;
     }
   }

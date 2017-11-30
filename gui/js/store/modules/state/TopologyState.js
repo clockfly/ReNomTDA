@@ -10,6 +10,7 @@ let TopologyState = {
 
   // 数値データのラベル
   numerical_data_labels: undefined,
+  numerical_data: undefined,
   numerical_data_mins: undefined,
   numerical_data_maxs: undefined,
   numerical_data_means: undefined,

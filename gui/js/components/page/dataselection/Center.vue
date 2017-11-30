@@ -15,44 +15,46 @@
           </tr>
         </thead>
         <tbody>
-            <tr>
-              <td>全選択</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>
-                <div class="input-group">
-                  <input type="checkbox" id="calc_all" :value="9999" v-model="create_all">
-                  <label for="calc_all"></label>
-                </div>
-              </td>
-              <td>
-                <div class="input-group">
-                  <input type="checkbox" id="color_all" :value="9999" v-model="colorize_all">
-                  <label for="color_all"></label>
-                </div>
-              </td>
-            </tr>
-            <tr v-for="(label, index) in numerical_data_labels" :key="index">
-              <td data-label="column_name">{{ label }}</td>
-              <td data-label="data_min">{{ data_mins[index] }}</td>
-              <td data-label="data_min">{{ data_maxs[index] }}</td>
-              <td data-label="data_min">{{ data_means[index] }}</td>
-              <td></td>
-              <td data-label="check_calc">
-                <div class="input-group">
-                  <input type="checkbox" :id="'calc'+index" :value="index" v-model="create_topology_index">
-                  <label :for="'calc'+index"></label>
-                </div>
-              </td>
-              <td data-label="check_color">
-                <div class="input-group">
-                  <input type="checkbox" :id="'color'+index" :value="index" v-model="colorize_topology_index">
-                  <label :for="'color'+index"></label>
-                </div>
-              </td>
-            </tr>
+          <tr>
+            <td>全選択</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+              <div class="input-group">
+                <input type="checkbox" id="calc_all" :value="9999" v-model="create_all">
+                <label for="calc_all"></label>
+              </div>
+            </td>
+            <td>
+              <div class="input-group">
+                <input type="checkbox" id="color_all" :value="9999" v-model="colorize_all">
+                <label for="color_all"></label>
+              </div>
+            </td>
+          </tr>
+          <tr v-for="(label, index) in numerical_data_labels" :key="index">
+            <td data-label="column_name">{{ label }}</td>
+            <td data-label="data_min">{{ data_mins[index] }}</td>
+            <td data-label="data_min">{{ data_maxs[index] }}</td>
+            <td data-label="data_min">{{ data_means[index] }}</td>
+            <td data-label="numerical_data">
+              <histogram :id="index" :histdata="numerical_data[index]"></histogram>
+            </td>
+            <td data-label="check_calc">
+              <div class="input-group">
+                <input type="checkbox" :id="'calc'+index" :value="index" v-model="create_topology_index">
+                <label :for="'calc'+index"></label>
+              </div>
+            </td>
+            <td data-label="check_color">
+              <div class="input-group">
+                <input type="checkbox" :id="'color'+index" :value="index" v-model="colorize_topology_index">
+                <label :for="'color'+index"></label>
+              </div>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -69,8 +71,13 @@
 </template>
 
 <script>
+import Histogram from './histogram.vue'
+
 export default {
   name: "DataSelectionCenter",
+  components: {
+    "histogram": Histogram,
+  },
   data: function() {
     return {
       create_topology_index: [],
@@ -85,6 +92,9 @@ export default {
     },
     numerical_data_labels() {
       return this.$store.state.topology.numerical_data_labels;
+    },
+    numerical_data() {
+      return this.$store.state.topology.numerical_data;
     },
     data_mins() {
       return this.$store.state.topology.numerical_data_mins;

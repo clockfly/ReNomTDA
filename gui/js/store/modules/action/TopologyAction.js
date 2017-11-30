@@ -3,6 +3,7 @@ import axios from 'axios'
 let TopologyAction = {
   load_file(context, payload) {
     context.commit('set_loading');
+    context.commit('reset_data_histogram');
 
     if(!payload.filename) {
       alert("please input file name.")
@@ -30,6 +31,7 @@ let TopologyAction = {
           'filename': payload.filename,
           'categorical_data_labels': response.data.categorical_data_labels,
           'numerical_data_labels': response.data.numerical_data_labels,
+          'numerical_data': response.data.numerical_data,
           'numerical_data_mins': response.data.numerical_data_mins,
           'numerical_data_maxs': response.data.numerical_data_maxs,
           'numerical_data_means': response.data.numerical_data_means
