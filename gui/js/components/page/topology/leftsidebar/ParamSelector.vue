@@ -10,11 +10,18 @@
     <div class="input-group vertical" v-if="mode == 1">
       <label for="clustering_index">Clustering Algorithm:</label>
       <select v-model="clustering_index" v-on:change="set_clustering_index">
-        <option v-for="(item, index) in clustering_algorithms" :value="index">{{item}}</option>
+        <option v-for="(item, index) in unsupervised_clusterings" :value="index">{{item}}</option>
       </select>
     </div>
 
-    <div class="mapping_params" v-if="mode == 2">
+    <div class="input-group vertical" v-if="mode == 2">
+      <label for="clustering_index">Clustering Algorithm:</label>
+      <select v-model="clustering_index" v-on:change="set_clustering_index">
+        <option v-for="(item, index) in supervised_clusterings" :value="index">{{item}}</option>
+      </select>
+    </div>
+
+    <div class="mapping_params" v-if="mode == 3">
       <p>Mapping Parameters</p>
       <div class="input-group vertical">
         <label for="resolution">resolution: {{resolution}}</label>
@@ -35,7 +42,7 @@
       </div>
     </div>
 
-    <div class="dbscan_params" v-if="(mode == 1 && clustering_index == 1) || mode == 2">
+    <div class="dbscan_params" v-if="(mode == 1 && clustering_index == 1) || mode == 3">
       <p>Clustering Parameters</p>
       <div class="input-group vertical">
         <label for="epsilon">epsilon: {{eps}}</label>
@@ -48,7 +55,7 @@
       </div>
     </div>
 
-    <div class="input-group vertical" v-if="mode == 1 && clustering_index > 1">
+    <div class="input-group vertical" v-if="mode == 2">
       <p>Clustering Parameters</p>
       <div class="input-group vertical">
         <label for="epsilon">train data size: {{ train_size }}</label>
@@ -56,7 +63,7 @@
       </div>
     </div>
 
-    <div class="input-group vertical" v-if="mode == 1 && clustering_index == 2">
+    <div class="input-group vertical" v-if="mode == 2 && clustering_index == 0">
       <div class="input-group vertical">
         <label for="epsilon">K: {{ neighbors }}</label>
         <input type="range" min="3" max="11" step="2" class="slider" v-model="neighbors" v-on:change="set_neighbors">
@@ -78,8 +85,9 @@ export default {
   props: ["column"],
   data: function() {
     return {
-      modes: ["Scatter Plot", "Clustering", "TDA"],
-      clustering_algorithms: ["K-means", "DBSCAN", "K-NearestNeighbor", "SVM", "Random Forest"],
+      modes: ["Scatter Plot", "Clustering(教師なし)", "Clustering(教師あり)", "TDA"],
+      unsupervised_clusterings: ["K-means", "DBSCAN"],
+      supervised_clusterings: ["K-NearestNeighbor", "SVM", "Random Forest"],
       mode: 0,
       resolution: 25,
       overlap: 0.5,

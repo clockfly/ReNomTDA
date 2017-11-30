@@ -15,7 +15,7 @@ export default {
   props: ["column"],
   data: function() {
     return {
-      algorithms: ["PCA", "TSNE", "MDS", "Auto Encoder 2Layer", "Auto Encoder 3Layer", "Auto Encoder 4Layer", "None"],
+      algorithms: ["PCA", "TSNE", "MDS", "Isomap", "Auto Encoder 2Layer", "Auto Encoder 3Layer", "Auto Encoder 4Layer", "None"],
       algorithm: 0
     }
   },

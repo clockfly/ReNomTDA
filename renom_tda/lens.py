@@ -166,3 +166,32 @@ class MDS(object):
 
         projected_data = self.mds.fit_transform(data)
         return projected_data[:, self.components]
+
+
+class Isomap(object):
+    """Class of projection data to MDS components axis.
+
+    Params:
+        components: The axis of projection. If you use compoents 0 and 1, this is [0, 1].
+    """
+    def __init__(self, components=[0, 1]):
+        if components is None:
+            raise Exception("Component error.")
+
+        self.components = components
+        self.isomap = manifold.Isomap(n_components=max(components) + 1)
+
+    def fit_transform(self, data):
+        """Function of projection data to MDS axis.
+
+        Params:
+            data: raw data or distance matrix.
+        """
+        if data is None:
+            raise Exception("Data must not None.")
+
+        if type(data) is not np.ndarray:
+            data = np.array(data)
+
+        projected_data = self.isomap.fit_transform(data)
+        return projected_data[:, self.components]

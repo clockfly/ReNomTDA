@@ -3,6 +3,7 @@ import axios from 'axios'
 let TopologyAction = {
   load_file(context, payload) {
     context.commit('set_loading');
+    context.commit('reset_data_histogram');
 
     if(!payload.filename) {
       alert("please input file name.")
@@ -16,8 +17,12 @@ let TopologyAction = {
     return axios.post('/api/load_file', fd)
       .then(function(response){
         let error = response.data.error;
-        if (error){
+        if (error == "LF0001"){
           alert("File not found. Please try again.");
+          context.commit('set_loading');
+          return
+        }else if(error == "LF0002") {
+          alert("File is too learge. Max file size is 10,000 rows.");
           context.commit('set_loading');
           return
         }
@@ -26,6 +31,7 @@ let TopologyAction = {
           'filename': payload.filename,
           'categorical_data_labels': response.data.categorical_data_labels,
           'numerical_data_labels': response.data.numerical_data_labels,
+          'numerical_data': response.data.numerical_data,
           'numerical_data_mins': response.data.numerical_data_mins,
           'numerical_data_maxs': response.data.numerical_data_maxs,
           'numerical_data_means': response.data.numerical_data_means
@@ -91,7 +97,8 @@ let TopologyAction = {
           'data_color_values': response.data.histogram_data[0].data_color_values,
           'data_color_values_col2': response.data.histogram_data[1].data_color_values,
           "statistic_value": response.data.histogram_data[0].statistic_value,
-          "statistic_value_col2": response.data.histogram_data[1].statistic_value
+          "statistic_value_col2": response.data.histogram_data[1].statistic_value,
+          "pca_result": response.data.pca_result
         });
         context.commit('set_loading');
       });

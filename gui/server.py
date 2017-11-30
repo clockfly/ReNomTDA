@@ -31,7 +31,7 @@ from sklearn import cluster, ensemble, neighbors, preprocessing, svm
 import renom as rm
 from renom.optimizer import Adam
 
-from renom_tda.lens import PCA, TSNE, MDS
+from renom_tda.lens import PCA, TSNE, MDS, Isomap
 from renom_tda.lens_renom import AutoEncoder
 from renom_tda.topology import SearchableTopology
 
@@ -80,6 +80,7 @@ class Storage:
                          colors BLOB,
                          hypercubes BLOB,
                          filename TEXT,
+                         pca_result BLOB,
                          created TIMESTAMP,
                          updated TIMESTAMP,
                          UNIQUE(rand_str, column_number))
@@ -96,18 +97,19 @@ class Storage:
             colors = cPickle.dumps([])
             node_sizes = cPickle.dumps([])
             hypercubes = cPickle.dumps([])
+            pca = cPickle.dumps([])
             now = datetime.datetime.now()
             c.execute('''
                 INSERT INTO
                     topology_data(rand_str, column_number, input_data, categorical_data,
-                    point_cloud, nodes, edges, colors, node_sizes, hypercubes, created)
+                    point_cloud, nodes, edges, colors, node_sizes, hypercubes, pca_result, created)
                 VALUES
-                    (?, ?, ?, ?, ?, ? , ?, ?, ?, ?, ?)
+                    (?, ?, ?, ?, ?, ? , ?, ?, ?, ?, ?, ?)
                 ''', (rand_str, column_number, input_data, categorical_data,
-                      point_cloud, nodes, edges, colors, node_sizes, hypercubes, now))
+                      point_cloud, nodes, edges, colors, node_sizes, hypercubes, pca, now))
 
     def update_topology_data(self, rand_str, column_number, canvas_params, topology, categorical_data,
-                             nodes, edges, colors, sizes, filename):
+                             nodes, edges, colors, sizes, filename, pca_result):
         with self.db:
             c = self.cursor()
             input_data = cPickle.dumps(topology.input_data)
@@ -118,6 +120,7 @@ class Storage:
             colors = cPickle.dumps(colors)
             sizes = cPickle.dumps(sizes)
             hypercubes = cPickle.dumps(topology.hypercubes)
+            pca = cPickle.dumps(pca_result)
             now = datetime.datetime.now()
             c.execute('''
                 UPDATE
@@ -125,7 +128,7 @@ class Storage:
                 SET
                     algorithm=?, analysis_mode=?, resolution=?, overlap=?, eps=?, min_samples=?,
                     color_index=?, input_data=?, categorical_data=?, point_cloud=?, nodes=?,
-                    node_sizes=?, edges=?, colors=?, hypercubes=?, filename=?, updated=?
+                    node_sizes=?, edges=?, colors=?, hypercubes=?, filename=?, pca_result=?, updated=?
                 WHERE
                     rand_str=?
                     AND
@@ -138,7 +141,7 @@ class Storage:
                       canvas_params[column_number]["min_samples"],
                       canvas_params[column_number]["color_index"],
                       input_data, categorical_data, point_cloud,
-                      nodes, sizes, edges, colors, hypercubes, filename,
+                      nodes, sizes, edges, colors, hypercubes, filename, pca,
                       now, rand_str, column_number
                       ))
 
@@ -149,7 +152,7 @@ class Storage:
                 SELECT
                     column_number, algorithm, analysis_mode, resolution, overlap, eps,
                     min_samples, color_index, input_data, categorical_data, point_cloud,
-                    nodes, node_sizes, edges, colors, hypercubes, filename
+                    nodes, node_sizes, edges, colors, hypercubes, filename, pca_result
                 FROM
                     topology_data
                 WHERE
@@ -175,7 +178,8 @@ class Storage:
                         "edges": cPickle.loads(data[13], encoding='ascii'),
                         "colors": cPickle.loads(data[14], encoding='ascii'),
                         "hypercubes": cPickle.loads(data[15], encoding='ascii'),
-                        "filename": data[16]
+                        "filename": data[16],
+                        "pca_result": cPickle.loads(data[17], encoding='ascii'),
                     }
                 })
         return topology_data
@@ -365,6 +369,11 @@ def load_file():
     try:
         pdata, categorical_data_index, numerical_data_index = _get_data_and_index(filepath)
 
+        if pdata.shape[0] > 10000:
+            body = json.dumps({"error": "LF0002"})
+            r = set_json_body(body)
+            return r
+
         # 表示するカラム名や統計情報を取得する
         labels = pdata.columns
         categorical_data_labels = labels[categorical_data_index]
@@ -382,7 +391,7 @@ def load_file():
         numerical_data_means = numerical_data.mean(axis=0)
         numerical_data_means = np.around(numerical_data_means, 2)
 
-        body = json.dumps({"numerical_data": numerical_data.tolist(),
+        body = json.dumps({"numerical_data": np.sort(numerical_data.T).tolist(),
                            "categorical_data_labels": categorical_data_labels.tolist(),
                            "numerical_data_labels": numerical_data_labels.tolist(),
                            "numerical_data_mins": numerical_data_mins.tolist(),
@@ -392,7 +401,7 @@ def load_file():
         return r
 
     except IOError:
-        body = json.dumps({"error": True})
+        body = json.dumps({"error": "LF0001"})
         r = set_json_body(body)
         return r
 
@@ -418,11 +427,11 @@ def click():
     numerical_data = np.array(pdata.loc[:, numerical_data_index])
     categorical_data = np.array(pdata.loc[:, categorical_data_index])
 
-    if mode == 0 or mode == 1:
+    if mode == 0 or mode == 1 or mode == 2:
         numerical_data = np.around(numerical_data[node_index], 2)
         body = json.dumps({"categorical_data": [categorical_data[node_index, :].tolist()],
                            "data": [numerical_data.tolist()]})
-    elif mode == 2:
+    elif mode == 3:
         categorical_data = categorical_data[topology.hypercubes[node_index]]
         numerical_data = numerical_data[topology.hypercubes[node_index]]
         # 少数の桁を丸める
@@ -442,6 +451,7 @@ def _dimension_reduction(topology, params, calc_data):
     algorithms = [PCA(components=[0, 1]),
                   TSNE(components=[0, 1]),
                   MDS(components=[0, 1]),
+                  Isomap(components=[0, 1]),
                   AutoEncoder(epoch=200,
                               batch_size=100,
                               network=AutoEncoder2Layer(normalized_calc_data.shape[1]),
@@ -481,11 +491,13 @@ def _normalize(data):
 
 def _get_clustering_color(topo, cdata, params, dist_vec):
     eps = dist_vec.min() + (dist_vec.max() - dist_vec.min()) * params["eps"]
-    clusterers = [cluster.KMeans(n_clusters=params["class_count"]),
-                  cluster.DBSCAN(eps=eps, min_samples=params["min_samples"]),
-                  neighbors.KNeighborsClassifier(n_neighbors=params["neighbors"]),
-                  svm.SVC(),
-                  ensemble.RandomForestClassifier()]
+    if params["mode"] == 1:
+        clusterers = [cluster.KMeans(n_clusters=params["class_count"]),
+                      cluster.DBSCAN(eps=eps, min_samples=params["min_samples"])]
+    elif params["mode"] == 2:
+        clusterers = [neighbors.KNeighborsClassifier(n_neighbors=params["neighbors"]),
+                      svm.SVC(),
+                      ensemble.RandomForestClassifier()]
     clusterer = clusterers[params["clustering_index"]]
     train_index = np.array([])
 
@@ -581,17 +593,29 @@ def _set_topology_data(topology, db_data):
 
 def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db_data, filename):
     canvas_data = {}
+    pca_result = {
+        "axis": None,
+        "contribution_ratio": 0,
+        "top_index": None
+    }
 
     for key in canvas_params.keys():
         # インスタンス初期化
         topology = SearchableTopology(verbose=0)
         train_index = []
+
         if _check_file_and_algorithm(db_data[key], canvas_params[key], filename):
             # アルゴリズムが変わっていたら次元削減
             _dimension_reduction(topology, canvas_params[key], calc_data)
+            if canvas_params[key]["algorithm"] == 0:
+                sort_index = np.argsort(np.abs(topology.lens[0].axis), axis=1)
+                pca_result["axis"] = np.around(topology.lens[0].axis, 3).tolist()
+                pca_result["contribution_ratio"] = np.around(np.sum(topology.lens[0].contribution_ratio), 3)
+                pca_result["top_index"] = sort_index[:, -3:].tolist()
         else:
             # アルゴリズムが変わっていなければDBの値を使う
             _set_topology_data(topology, db_data[key])
+            pca_result = db_data[key]["pca_result"]
 
         cdata = color_data[:, canvas_params[key]["color_index"]].reshape(-1, 1)
 
@@ -608,8 +632,14 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
             edges = []
             sizes = [0.3] * len(topology.point_cloud)
             colors, train_index = _get_clustering_color(topology, cdata, canvas_params[key], dist_vec)
-        # TDA
         elif canvas_params[key]["mode"] == 2:
+            dist_vec = _calc_dist_vec(topology)
+            nodes = topology.point_cloud.tolist()
+            edges = []
+            sizes = [0.3] * len(topology.point_cloud)
+            colors, train_index = _get_clustering_color(topology, cdata, canvas_params[key], dist_vec)
+        # TDA
+        elif canvas_params[key]["mode"] == 3:
             # パラメータが変わっていたらトポロジーの再計算
             check_file_and_algorithm = _check_file_and_algorithm(db_data[key], canvas_params[key], filename)
             check_analysis_mode = _check_analysis_mode(db_data[key], canvas_params[key])
@@ -624,7 +654,7 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
                 # nodeが作れなかったときreturnする
                 if topology.nodes is None or len(topology.nodes) < 5:
                     canvas_data.update({key: {"nodes": [], "edges": [], "colors": [], "sizes": []}})
-                    return canvas_data
+                    return canvas_data, pca_result
 
                 nodes = topology.nodes.tolist()
                 edges = topology.edges.tolist()
@@ -635,7 +665,7 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
             colors = _get_topology_color(topology, cdata)
 
         storage.update_topology_data(rand_str, key, canvas_params, topology, categorical_data,
-                                     nodes, edges, colors, sizes, filename)
+                                     nodes, edges, colors, sizes, filename, pca_result)
         canvas_data.update({key: {
             "nodes": nodes,
             "edges": edges,
@@ -644,7 +674,7 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
             "train_index": train_index
         }})
 
-    return canvas_data
+    return canvas_data, pca_result
 
 
 def _set_histogram_data(color_data, canvas_params):
@@ -718,8 +748,8 @@ def create():
     categorical_data = np.array(pdata.loc[:, categorical_data_index])
 
     # トポロジーを作る
-    canvas_data = _create(rand_str, canvas_params, calc_data,
-                          color_data, categorical_data, db_data, filename)
+    canvas_data, pca_result = _create(rand_str, canvas_params, calc_data,
+                                      color_data, categorical_data, db_data, filename)
 
     # nodeが作れなかったときにエラーを返す
     if len(canvas_data[0]["nodes"]) < 5 or len(canvas_data[1]["nodes"]) < 5:
@@ -727,7 +757,8 @@ def create():
     else:
         # bodyを設定
         body = json.dumps({"canvas_data": canvas_data,
-                           "histogram_data": histogram_data
+                           "histogram_data": histogram_data,
+                           "pca_result": pca_result
                            })
     r = set_json_body(body)
     return r

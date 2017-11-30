@@ -10,6 +10,7 @@ let TopologyState = {
 
   // 数値データのラベル
   numerical_data_labels: undefined,
+  numerical_data: undefined,
   numerical_data_mins: undefined,
   numerical_data_maxs: undefined,
   numerical_data_means: undefined,
@@ -50,6 +51,8 @@ let TopologyState = {
   train_size_col2: 0.8,
   neighbors_col2: 5,
   train_index_col2: undefined,
+
+  pca_result: undefined,
 
   // 表示に関するパラメータ、真ん中上のヘッダーで変更する
   show_histogram: false,

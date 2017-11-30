@@ -3,10 +3,6 @@
     <button class="go_prev" v-on:click="go_prev">データ選択に戻る</button>
 
     <div class="tabs stacked col-md-11 col-lg-11 tab_area">
-      <input type="checkbox" id="layout_selector" aria-hidden="true">
-      <label for="layout_selector" aria-hidden="true">Layout Selector</label>
-      <layout-selector></layout-selector>
-
       <input type="checkbox" id="column_param_selector0" aria-hidden="true">
       <label for="column_param_selector0" aria-hidden="true">Column 0</label>
       <column-params-selector :column="'0'"></column-params-selector>
@@ -25,13 +21,11 @@
 </template>
 
 <script>
-import LayoutSelector from './LayoutSelector.vue'
 import ColumnParamsSelector from './ColumnParamsSelector.vue'
 
 export default {
   name: "TopologyLeftSideBar",
   components: {
-    'layout-selector': LayoutSelector,
     'column-params-selector': ColumnParamsSelector
   },
   computed: {
