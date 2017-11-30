@@ -427,11 +427,11 @@ def click():
     numerical_data = np.array(pdata.loc[:, numerical_data_index])
     categorical_data = np.array(pdata.loc[:, categorical_data_index])
 
-    if mode == 0 or mode == 1:
+    if mode == 0 or mode == 1 or mode == 2:
         numerical_data = np.around(numerical_data[node_index], 2)
         body = json.dumps({"categorical_data": [categorical_data[node_index, :].tolist()],
                            "data": [numerical_data.tolist()]})
-    elif mode == 2:
+    elif mode == 3:
         categorical_data = categorical_data[topology.hypercubes[node_index]]
         numerical_data = numerical_data[topology.hypercubes[node_index]]
         # 少数の桁を丸める
@@ -654,7 +654,7 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
                 # nodeが作れなかったときreturnする
                 if topology.nodes is None or len(topology.nodes) < 5:
                     canvas_data.update({key: {"nodes": [], "edges": [], "colors": [], "sizes": []}})
-                    return canvas_data
+                    return canvas_data, pca_result
 
                 nodes = topology.nodes.tolist()
                 edges = topology.edges.tolist()
