@@ -6,9 +6,9 @@
 
         <button id="show_histogram_button" v-on:click="show_histogram">ヒストグラム <i class="fa fa-bar-chart" aria-hidden="true"></i></button>
 
-        <button id="show_spring_button" v-on:click="show_spring">TDA 3D <i class="fa fa-expand" aria-hidden="true"></i></button>
+        <button id="show_spring_button" v-on:click="show_spring">TDA 3D <i class="fa fa-cube" aria-hidden="true"></i></button>
 
-        <button id="reset_button" v-on:click="reset">リセット <i class="fa fa-refresh" aria-hidden="true"></i></button>
+        <button id="reset_button" v-on:click="reset">リセット <i class="fa fa-times" aria-hidden="true"></i></button>
       </div>
 
       <div class="pca_result" v-if="show_pca_result">
