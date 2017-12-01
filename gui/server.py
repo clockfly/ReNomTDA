@@ -515,7 +515,7 @@ def _get_clustering_color(topo, cdata, params, dist_vec):
         y_train = cdata[train_index].astype(int)
         # y_test = cdata[test_index]
         # 目的変数がラベルデータ(int)なら分類&predictする
-        clusterer.fit(x_train, y_train.reshape(-1,))
+        clusterer.fit(x_train, y_train)
         labels = np.zeros((topo.point_cloud.shape[0], 1))
         labels[train_index] += y_train
         labels[test_index] += clusterer.predict(x_test).reshape(-1, 1)
