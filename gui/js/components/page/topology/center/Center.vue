@@ -122,6 +122,7 @@ export default {
   },
   methods: {
     split_layout: function() {
+      document.getElementById("split_layout_button").classList.toggle('inverse');
       this.$store.commit('set_layout', {
         'layout_columns': (this.$store.state.topology.layout_columns + 1) % 2
       });

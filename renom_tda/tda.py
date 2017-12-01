@@ -44,6 +44,7 @@ class TopologyCore(object):
         self.eps = 0
         self.min_samples = 0
         # output data
+        self.train_index = []
         self.point_cloud = None
         self.hypercubes = {}
         self.nodes = None
@@ -60,7 +61,8 @@ class TopologyCore(object):
 
     def _re_standardize(self, data):
         if self.standardize:
-            return data * (self.number_data_std + 1e-10) + self.number_data_avg
+            standardize_data = data * (self.number_data_std + 1e-10) + self.number_data_avg
+            return standardize_data
         else:
             return data
 
@@ -364,7 +366,10 @@ class TopologyCore(object):
     def _concatenate_target(self, target):
         if target is not None:
             number_data = np.concatenate([self.number_data, target.reshape(-1, 1)], axis=1)
-            number_data_columns = np.concatenate([self.number_data_columns, np.array(["target"])], axis=0)
+            if self.number_data_columns is not None:
+                number_data_columns = np.concatenate([self.number_data_columns, np.array(["target"])], axis=0)
+            else:
+                number_data_columns = None
             return number_data, number_data_columns
         else:
             return self.number_data, self.number_data_columns
@@ -654,15 +659,15 @@ class Topology(TopologyCore):
     def supervised_clustering_point_cloud(self, clusterer=None, target=None, train_size=0.9):
         if clusterer is not None and "fit" in dir(clusterer) and target is not None:
             # 教師データとテストデータに分ける
-            train_index, test_index = self._get_train_test_index(self.point_cloud.shape[0], train_size)
-            x_train = self.point_cloud[train_index, :]
+            self.train_index, test_index = self._get_train_test_index(self.point_cloud.shape[0], train_size)
+            x_train = self.point_cloud[self.train_index, :]
             x_test = self.point_cloud[test_index, :]
-            y_train = target[train_index].astype(int)
+            y_train = target[self.train_index].astype(int)
 
             # 目的変数がラベルデータ(int)なら分類&predictする
             clusterer.fit(x_train, y_train)
             labels = np.zeros((self.point_cloud.shape[0], 1))
-            labels[train_index] += y_train.reshape(-1, 1)
+            labels[self.train_index] += y_train.reshape(-1, 1)
             labels[test_index] += clusterer.predict(x_test).reshape(-1, 1)
             labels = self._normalize(labels)
             self.point_cloud_hex_colors = [self._hex_color(i) for i in labels]
@@ -683,6 +688,55 @@ class Topology(TopologyCore):
     def search_point_cloud(self, search_dicts=None, target=None, search_type="index"):
         search_number_data, search_number_data_columns = self._concatenate_target(target)
         search_number_data[:, :-1] = self._re_standardize(search_number_data[:, :-1])
+
         data_index = self._data_index_from_search_dict(search_number_data, search_number_data_columns, search_dicts, search_type)
         self._set_search_point_cloud_color(data_index)
         return data_index
+
+if __name__ == "__main__":
+    from sklearn.datasets import load_iris
+    from sklearn import neighbors
+    from sklearn import svm
+    from sklearn import ensemble
+    from renom_tda.lens import PCA
+
+    iris = load_iris()
+    data = iris.data
+    target = iris.target
+
+    labels = []
+    labels.extend(["setosa"] * 50)
+    labels.extend(["versicolor"] * 50)
+    labels.extend(["virginica"] * 50)
+    labels = np.array(labels)
+
+    tda = Topology()
+    tda.load_data(text_data=labels.reshape(-1, 1), text_data_columns=["name"], number_data=data, number_data_columns=["sepal length", "sepal width", "petal length", "petal width"], standardize=True)
+    tda.fit_transform(metric=None, lens=[PCA(components=[0, 1])])
+    tda.map(eps=0.1, min_samples=3)
+    tda.color(target, color_method="mean")
+    search_values = [{
+        "data_type": "number",
+        "column": "sepal width",
+        "operator": ">",
+        "value": 3
+    }, {
+        "data_type": "number",
+        "column": "sepal width",
+        "operator": "<",
+        "value": 3.2
+    }]
+
+    # tda.search_from_id(0)
+    node_ids = tda.search_from_values(search_dicts=search_values, target=target, search_type="column")
+    tda.show(mode="spring", node_size=10, edge_width=1, strength=0.03)
+
+    tda.color_point_cloud(target)
+    tda.search_point_cloud(search_dicts=search_values, target=target, search_type="column")
+    # tda.unsupervised_clustering_point_cloud(clusterer=cluster.KMeans(n_clusters=3))
+    # tda.unsupervised_clustering_point_cloud(clusterer=cluster.DBSCAN(eps=0.1, min_samples=2))
+    # tda.supervised_clustering_point_cloud(clusterer=neighbors.KNeighborsClassifier(n_neighbors=3), target=target)
+    # tda.supervised_clustering_point_cloud(clusterer=svm.SVC(), target=target)
+    # tda.supervised_clustering_point_cloud(clusterer=ensemble.RandomForestClassifier(), target=target)
+    tda.show_point_cloud()
+    # tda.save("test.png")
