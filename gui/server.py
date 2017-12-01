@@ -33,7 +33,7 @@ from renom.optimizer import Adam
 
 from renom_tda.lens import PCA, TSNE, MDS, Isomap
 from renom_tda.lens_renom import AutoEncoder
-from renom_tda.topology import SearchableTopology
+from renom_tda.tda import SearchableTopology
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")

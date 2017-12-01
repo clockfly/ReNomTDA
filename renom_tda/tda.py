@@ -30,6 +30,10 @@ class TopologyCore(object):
         self.text_data_columns = None
         self.number_data = None
         self.number_data_columns = None
+
+        self.standardize = False
+        self.number_data_avg = None
+        self.number_data_std = None
         # transform
         self.metric = None
         self.lens = None
@@ -47,6 +51,18 @@ class TopologyCore(object):
         self.node_sizes = None
         self.colors = None
         self.hex_colors = None
+
+    def _standardize(self, data):
+        self.number_data_avg = np.average(data, axis=0)
+        self.number_data_std = np.std(data, axis=0)
+        standardize_data = (data - self.number_data_avg) / (self.number_data_std + 1e-10)
+        return standardize_data
+
+    def _re_standardize(self, data):
+        if self.standardize:
+            return data * (self.number_data_std + 1e-10) + self.number_data_avg
+        else:
+            return data
 
     def _normalize(self, data, feature_range=(0, 1)):
         data = data.astype(np.float)
@@ -359,7 +375,7 @@ class TopologyCore(object):
             data_index.extend(self.hypercubes[nid])
         return list(set(data_index))
 
-    def load_data(self, text_data=None, text_data_columns=None, number_data=None, number_data_columns=None):
+    def load_data(self, text_data=None, text_data_columns=None, number_data=None, number_data_columns=None, standardize=False):
         """
         load data
         """
@@ -378,9 +394,12 @@ class TopologyCore(object):
         if number_data.ndim != 2:
             raise ValueError("Data must be 2d array.")
 
+        self.standardize = standardize
+
         self.text_data = text_data
         self.text_data_columns = text_data_columns
-        self.number_data = number_data
+
+        self.number_data = self._standardize(number_data)
         self.number_data_columns = number_data_columns
 
     def fit_transform(self, metric=None, lens=None, scaler=preprocessing.MinMaxScaler()):
@@ -511,7 +530,7 @@ class TopologyCore(object):
 
         number_data = None
         if self.number_data is not None:
-            number_data = self.number_data[data_ids]
+            number_data = self._re_standardize(self.number_data[data_ids])
 
         text_data_columns = None
         if self.text_data_columns is not None:
@@ -528,7 +547,6 @@ class TopologyCore(object):
             "text_data_columns": text_data_columns,
             "number_data": number_data,
             "number_data_columns": number_data_columns,
-
         }
 
         if self.verbose == 1:
@@ -550,6 +568,7 @@ class TopologyCore(object):
         search from dict
         """
         search_number_data, search_number_data_columns = self._concatenate_target(target)
+        search_number_data[:, :-1] = self._re_standardize(search_number_data[:, :-1])
         data_index = self._data_index_from_search_dict(search_number_data, search_number_data_columns, search_dicts, search_type)
         node_index = self._node_index_from_data_id(data_index)
         self._set_search_color(node_index)
@@ -594,6 +613,13 @@ class Topology(TopologyCore):
         train_index = np.sort(index[:threshold])
         test_index = np.sort(index[threshold:])
         return train_index, test_index
+
+    def _set_search_point_cloud_color(self, data_index):
+        searched_color = ["#cccccc"] * len(self.point_cloud)
+        for i in data_index:
+            searched_color[i] = self.point_cloud_hex_colors[i]
+        self.point_cloud_hex_colors = searched_color
+        pass
 
     def color_point_cloud(self, target, color_type="rgb", normalized=False):
         """
@@ -653,3 +679,10 @@ class Topology(TopologyCore):
         ax.scatter(self.point_cloud[:, 0], self.point_cloud[:, 1], c=self.point_cloud_hex_colors, s=node_size)
         plt.axis("off")
         plt.show()
+
+    def search_point_cloud(self, search_dicts=None, target=None, search_type="index"):
+        search_number_data, search_number_data_columns = self._concatenate_target(target)
+        search_number_data[:, :-1] = self._re_standardize(search_number_data[:, :-1])
+        data_index = self._data_index_from_search_dict(search_number_data, search_number_data_columns, search_dicts, search_type)
+        self._set_search_point_cloud_color(data_index)
+        return data_index
