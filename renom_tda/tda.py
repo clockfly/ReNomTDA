@@ -44,7 +44,7 @@ class TopologyCore(object):
         self.eps = 0
         self.min_samples = 0
         # output data
-        self.train_index = []
+        self.train_index = np.array([])
         self.point_cloud = None
         self.hypercubes = {}
         self.nodes = None

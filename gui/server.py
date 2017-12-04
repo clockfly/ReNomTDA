@@ -341,9 +341,9 @@ def _set_topology_data(topology, db_data):
 def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db_data, filename):
     canvas_data = {}
     pca_result = {
-        "axis": None,
+        "axis": [],
         "contribution_ratio": 0,
-        "top_index": None
+        "top_index": []
     }
 
     for key in canvas_params.keys():
@@ -426,12 +426,13 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
 
         storage.update_topology_data(rand_str, key, canvas_params, topology, categorical_data,
                                      nodes, edges, colors, sizes, filename, pca_result)
+
         canvas_data.update({key: {
             "nodes": nodes,
             "edges": edges,
             "colors": colors,
             "sizes": sizes,
-            "train_index": topology.train_index
+            "train_index": topology.train_index.tolist()
         }})
 
     return canvas_data, pca_result
