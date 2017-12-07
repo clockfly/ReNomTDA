@@ -397,7 +397,8 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
                           svm.SVC(),
                           ensemble.RandomForestClassifier()]
             clusterer = clusterers[canvas_params[key]["clustering_index"]]
-            topology.supervised_clustering_point_cloud(clusterer=clusterer, target=cdata, train_size=canvas_params[key]["train_size"])
+            topology.supervised_clustering_point_cloud(clusterer=clusterer, target=cdata,
+                                                       train_size=canvas_params[key]["train_size"])
 
             nodes = topology.point_cloud.tolist()
             edges = []
