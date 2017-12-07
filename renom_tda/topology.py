@@ -285,6 +285,7 @@ class TopologyCore(object):
 
         # ネットワークグラフで描画する。
         fig = plt.figure(figsize=fig_size)
+        fig.add_subplot(111)
         graph = nx.Graph(pos=init_position)
         graph.add_nodes_from(range(len(self.nodes)))
         graph.add_edges_from(self.edges)
@@ -334,11 +335,13 @@ class TopologyCore(object):
             if search_dict["data_type"] == "number":
                 column_index = self._get_search_column_index(search_number_data_columns, search_dict, search_type)
                 if column_index is not None:
-                    index = self._number_search(search_number_data[:, column_index], search_dict["value"], search_dict["operator"])
+                    index = self._number_search(search_number_data[:, column_index],
+                                                search_dict["value"], search_dict["operator"])
             else:
                 column_index = self._get_search_column_index(self.text_data_columns, search_dict, search_type)
                 if column_index is not None:
-                    index = self._text_search(self.text_data[:, column_index], search_dict["value"], search_dict["operator"])
+                    index = self._text_search(self.text_data[:, column_index],
+                                              search_dict["value"], search_dict["operator"])
 
             if len(data_index) > 0:
                 if len(index) > 0:
@@ -383,7 +386,8 @@ class TopologyCore(object):
             data_index.extend(self.hypercubes[nid])
         return list(set(data_index))
 
-    def load_data(self, number_data, text_data=None, text_data_columns=None, number_data_columns=None, standardize=False):
+    def load_data(self, number_data, text_data=None, text_data_columns=None,
+                  number_data_columns=None, standardize=False):
         """
         load data
         """
@@ -615,7 +619,8 @@ class TopologyCore(object):
         number_data = self._re_standardize(self.number_data)
         search_number_data, search_number_data_columns = self._concatenate_target(number_data, target)
 
-        data_index = self._data_index_from_search_dict(search_number_data, search_number_data_columns, search_dicts, search_type)
+        data_index = self._data_index_from_search_dict(search_number_data, search_number_data_columns,
+                                                       search_dicts, search_type)
         node_index = self._node_index_from_data_id(data_index)
         self._set_search_color(node_index)
 
@@ -726,7 +731,7 @@ class Topology(TopologyCore):
     def unsupervised_clustering_point_cloud(self, clusterer=None):
         if clusterer is not None and "fit" in dir(clusterer):
             clusterer.fit(self.point_cloud)
-            labels = self._normalize(clusterer.labels_)
+            labels = self._normalize(clusterer.labels_.reshape(-1, 1))
             self.point_cloud_hex_colors = [self._hex_color(i) if i >= 0 else "#000000" for i in labels]
 
     def show_point_cloud(self, fig_size=(5, 5), node_size=5):
@@ -740,6 +745,7 @@ class Topology(TopologyCore):
         search_number_data = self._re_standardize(self.number_data)
         search_number_data, search_number_data_columns = self._concatenate_target(search_number_data, target)
 
-        data_index = self._data_index_from_search_dict(search_number_data, search_number_data_columns, search_dicts, search_type)
+        data_index = self._data_index_from_search_dict(search_number_data, search_number_data_columns,
+                                                       search_dicts, search_type)
         self._set_search_point_cloud_color(data_index)
         return data_index

@@ -1,7 +1,5 @@
 # coding: utf-8
 
-import colorsys
-
 import json
 
 import os
