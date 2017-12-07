@@ -27,12 +27,18 @@ from renom.optimizer import Adam
 
 from renom_tda.lens import PCA, TSNE, MDS, Isomap
 from renom_tda.lens_renom import AutoEncoder
-from renom_tda.tda import Topology
+from renom_tda.topology import Topology
 
 from storage import storage
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
+
+MIN_NODE_SIZE = 0.3
+MAX_NODE_SIZE = 2.0
+
+DATA_TYPE = ["number", "text"]
+OPERATORS = [["=", ">", "<"], ["=", "like"]]
 
 
 class AutoEncoder2Layer(rm.Model):
@@ -281,9 +287,9 @@ def _get_topology_color(topo, cdata):
 def _get_topology_sizes(topo, resolution):
     # トポロジーの大きさの調整
     max_scale = 80 / resolution
-    if max_scale > 2:
-        max_scale = 2.0
-    scaler = preprocessing.MinMaxScaler(feature_range=(0.3, max_scale))
+    if max_scale > MAX_NODE_SIZE:
+        max_scale = MAX_NODE_SIZE
+    scaler = preprocessing.MinMaxScaler(feature_range=(MIN_NODE_SIZE, max_scale))
     topo.node_sizes = scaler.fit_transform(topo.node_sizes)
     return topo.node_sizes.tolist()
 
@@ -371,7 +377,7 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
         if canvas_params[key]["mode"] == 0:
             nodes = topology.point_cloud.tolist()
             edges = []
-            sizes = [0.3] * len(topology.point_cloud)
+            sizes = [MIN_NODE_SIZE] * len(topology.point_cloud)
             topology.color_point_cloud(cdata)
             colors = topology.point_cloud_hex_colors
         # unsupervised clustering
@@ -385,7 +391,7 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
 
             nodes = topology.point_cloud.tolist()
             edges = []
-            sizes = [0.3] * len(topology.point_cloud)
+            sizes = [MIN_NODE_SIZE] * len(topology.point_cloud)
             colors = topology.point_cloud_hex_colors
         # supervised clustering
         elif canvas_params[key]["mode"] == 2:
@@ -397,7 +403,7 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
 
             nodes = topology.point_cloud.tolist()
             edges = []
-            sizes = [0.3] * len(topology.point_cloud)
+            sizes = [MIN_NODE_SIZE] * len(topology.point_cloud)
             colors = topology.point_cloud_hex_colors
         # TDA
         elif canvas_params[key]["mode"] == 3:
@@ -556,7 +562,6 @@ def _set_canvas_data(topology, db_data):
 
 def _search(search_params, canvas_params, db_data, color_data):
     canvas_colors = {}
-    operators = ["=", "like"]
 
     for key in canvas_params.keys():
         # インスタンス初期化
@@ -566,13 +571,12 @@ def _search(search_params, canvas_params, db_data, color_data):
 
         # 検索
         if len(search_params["search_value"]) > 0:
-            data_type = "text"
+            data_type = DATA_TYPE[search_params["is_categorical"]]
+            operators = OPERATORS[search_params["is_categorical"]]
             decoded_value = _decode_txt(search_params["search_value"])
 
             # 数値データなら
             if search_params["is_categorical"] == 0:
-                data_type = "number"
-                operators = ["=", ">", "<"]
                 decoded_value = float(decoded_value)
 
             dict_values = {"column": search_params["search_column_index"],

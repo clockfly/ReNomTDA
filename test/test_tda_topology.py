@@ -7,17 +7,152 @@ from sklearn.cluster import DBSCAN
 
 from renom_tda.lens import PCA, L1Centrality, GaussianDensity
 from renom_tda.metric import Distance
-from renom_tda.topology import Topology, SearchableTopology
+from renom_tda.topology import Topology
+
+
+def test_load_data_none():
+    data = None
+
+    t = Topology()
+    with pytest.raises(ValueError):
+        t.load_data(data)
+
+
+def test_load_data_array_data():
+    data = [[0.0, 0.0], [1.0, 1.0]]
+
+    t = Topology()
+    t.load_data(data)
+
+    assert_array_equal(t.number_data, np.array(data))
+
+
+def test_load_data_ndarray_data():
+    data = np.array([[0.0, 0.0], [1.0, 1.0]])
+
+    t = Topology()
+    t.load_data(data)
+
+    assert_array_equal(t.number_data, data)
+
+
+def test_load_data_not_2d_array():
+    data = [[[0.0, 0.0], [1.0, 1.0]]]
+
+    t = Topology()
+    with pytest.raises(ValueError):
+        t.load_data(data)
+
+
+def test_load_data_standardize_true():
+    data = np.array([[0.0, 0.0], [1.0, 1.0]])
+
+    t = Topology()
+    t.load_data(data, standardize=True)
+
+    data_avg = np.array([0.5, 0.5])
+    data_std = np.array([0.5, 0.5])
+    test_data = (data - data_avg) / (data_std + 1e-10)
+    assert_array_equal(t.number_data, test_data)
+
+
+def test_load_data_number_data_columns():
+    data = np.array([[0.0, 0.0], [1.0, 1.0]])
+    data_columns = ["data1", "data2"]
+
+    t = Topology()
+    t.load_data(data, number_data_columns=data_columns)
+
+    assert_array_equal(t.number_data_columns, np.array(data_columns))
+
+
+def test_load_data_number_data_columns_ndarray():
+    data = np.array([[0.0, 0.0], [1.0, 1.0]])
+    data_columns = np.array(["data1", "data2"])
+
+    t = Topology()
+    t.load_data(data, number_data_columns=data_columns)
+
+    assert_array_equal(t.number_data_columns, data_columns)
+
+
+def test_load_data_text_data():
+    data = np.array([[0.0, 0.0], [1.0, 1.0]])
+    text_data = [["data1"], ["data2"]]
+
+    t = Topology()
+    t.load_data(data, text_data=text_data)
+
+    assert_array_equal(t.text_data, np.array(text_data))
+
+
+def test_load_data_text_data_ndarray():
+    data = np.array([[0.0, 0.0], [1.0, 1.0]])
+    text_data = np.array([["data1"], ["data2"]])
+
+    t = Topology()
+    t.load_data(data, text_data=text_data)
+
+    assert_array_equal(t.text_data, text_data)
+
+
+def test_load_data_text_data_columns():
+    data = np.array([[0.0, 0.0], [1.0, 1.0]])
+    text_data = np.array([["data1-1", "data1-2"], ["data2-1", "data2-2"]])
+    text_data_columns = ["columns1", "columns2"]
+
+    t = Topology()
+    t.load_data(data, text_data=text_data, text_data_columns=text_data_columns)
+
+    assert_array_equal(t.text_data_columns, np.array(text_data_columns))
+
+
+def test_load_data_text_data_columns_ndarray():
+    data = np.array([[0.0, 0.0], [1.0, 1.0]])
+    text_data = np.array([["data1-1", "data1-2"], ["data2-1", "data2-2"]])
+    text_data_columns = ["columns1", "columns2"]
+
+    t = Topology()
+    t.load_data(data, text_data=text_data, text_data_columns=text_data_columns)
+
+    assert_array_equal(t.text_data_columns, text_data_columns)
+
+
+def test_load_data_text_data_columns_text_data_is_none():
+    data = np.array([[0.0, 0.0], [1.0, 1.0]])
+    text_data = None
+    text_data_columns = ["columns1", "columns2"]
+
+    t = Topology()
+    with pytest.raises(ValueError):
+        t.load_data(data, text_data=text_data, text_data_columns=text_data_columns)
+
+
+def test_load_data_text_data_columns_text_data_diff_columns():
+    data = np.array([[0.0, 0.0], [1.0, 1.0]])
+    text_data = np.array([["data1-1", "data1-2"], ["data2-1", "data2-2"]])
+    text_data_columns = ["columns1"]
+
+    t = Topology()
+    with pytest.raises(ValueError):
+        t.load_data(data, text_data=text_data, text_data_columns=text_data_columns)
+
+
+def test_transform_data_none():
+    t = Topology()
+    with pytest.raises(ValueError):
+        t.fit_transform()
 
 
 def test_transform_none_none():
     data = np.array([[0., 0.], [1., 1.]])
 
     t = Topology()
+    t.load_data(data)
 
     metric = None
     lens = None
-    t.fit_transform(data, metric=metric, lens=lens)
+    t.fit_transform(metric=metric, lens=lens)
 
     test_data = np.array([[0., 0.], [1., 1.]])
 
@@ -28,10 +163,11 @@ def test_transform_none_pca():
     data = np.array([[0., 1.], [1., 0.]])
 
     t = Topology()
+    t.load_data(data)
 
     metric = None
     lens = [PCA(components=[0])]
-    t.fit_transform(data, metric=metric, lens=lens)
+    t.fit_transform(metric=metric, lens=lens)
 
     test_data = np.array([0., 1.])
     test_data = test_data.reshape(test_data.shape[0], 1)
@@ -43,10 +179,11 @@ def test_transform_multi_lens():
     data = np.array([[0., 0.], [0., 1.], [1., 1.]])
 
     t = Topology()
+    t.load_data(data)
 
     metric = Distance(metric="hamming")
     lens = [L1Centrality(), GaussianDensity(h=0.25)]
-    t.fit_transform(data, metric=metric, lens=lens)
+    t.fit_transform(metric=metric, lens=lens)
 
     test_data = np.array([[1., 0.], [0., 1.], [1., 0.]])
 
@@ -65,10 +202,10 @@ def test_map():
                      [0., 1.]])
 
     t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
+    t.load_data(data)
+    t.fit_transform(metric=None, lens=None)
 
-    clusterer = DBSCAN(eps=0.4, min_samples=3)
-    t.map(resolution=2, overlap=0.3, clusterer=clusterer)
+    t.map(resolution=2, overlap=0.3, eps=0.1, min_samples=3)
 
     test_nodes = np.array([[0.25, 0.25],
                            [0.25, 0.75],
@@ -86,7 +223,85 @@ def test_map():
     assert_array_equal(t.edges, test_edges)
 
 
-def test_color_categorical_rgb():
+def test_map_point_cloud_none():
+    t = Topology()
+    with pytest.raises(ValueError):
+        t.map()
+
+
+def test_map_resolution_under_zero():
+    data = np.array([[0., 0.],
+                     [0.25, 0.25],
+                     [0.5, 0.5],
+                     [0.75, 0.75],
+                     [1., 1.],
+                     [1., 0.],
+                     [0.25, 0.75],
+                     [0.75, 0.25],
+                     [0., 1.]])
+
+    t = Topology()
+    t.load_data(data)
+    t.fit_transform(metric=None, lens=None)
+    with pytest.raises(ValueError):
+        t.map(resolution=-1)
+
+
+def test_map_overlap_under_zero():
+    data = np.array([[0., 0.],
+                     [0.25, 0.25],
+                     [0.5, 0.5],
+                     [0.75, 0.75],
+                     [1., 1.],
+                     [1., 0.],
+                     [0.25, 0.75],
+                     [0.75, 0.25],
+                     [0., 1.]])
+
+    t = Topology()
+    t.load_data(data)
+    t.fit_transform(metric=None, lens=None)
+    with pytest.raises(ValueError):
+        t.map(overlap=-1)
+
+
+def test_map_eps_under_zero():
+    data = np.array([[0., 0.],
+                     [0.25, 0.25],
+                     [0.5, 0.5],
+                     [0.75, 0.75],
+                     [1., 1.],
+                     [1., 0.],
+                     [0.25, 0.75],
+                     [0.75, 0.25],
+                     [0., 1.]])
+
+    t = Topology()
+    t.load_data(data)
+    t.fit_transform(metric=None, lens=None)
+    with pytest.raises(ValueError):
+        t.map(eps=-1)
+
+
+def test_map_min_samples_under_zero():
+    data = np.array([[0., 0.],
+                     [0.25, 0.25],
+                     [0.5, 0.5],
+                     [0.75, 0.75],
+                     [1., 1.],
+                     [1., 0.],
+                     [0.25, 0.75],
+                     [0.75, 0.25],
+                     [0., 1.]])
+
+    t = Topology()
+    t.load_data(data)
+    t.fit_transform(metric=None, lens=None)
+    with pytest.raises(ValueError):
+        t.map(min_samples=-1)
+
+
+def test_color_mode_rgb():
     data = np.array([[0., 0.],
                      [0.1, 0.1],
                      [0.2, 0.2],
@@ -102,19 +317,19 @@ def test_color_categorical_rgb():
                        [2], [2], [2]])
 
     t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
+    t.load_data(data)
+    t.fit_transform(metric=None, lens=None)
 
-    clusterer = DBSCAN(eps=0.2, min_samples=3)
-    t.map(resolution=2, overlap=0.3, clusterer=clusterer)
+    t.map(resolution=2, overlap=0.3, eps=0.2, min_samples=3)
 
-    t.color(target, dtype="categorical", ctype="rgb", normalized=False)
+    t.color(target, color_method="mode", color_type="rgb", normalize=False)
 
     test_color = ['#0000b2', '#00b200', '#b2b200']
 
-    assert t.colors == test_color
+    assert t.hex_colors == test_color
 
 
-def test_color_numerical_rgb():
+def test_color_mean_rgb():
     data = np.array([[0., 0.],
                      [0.1, 0.1],
                      [0.2, 0.2],
@@ -130,19 +345,19 @@ def test_color_numerical_rgb():
                        [2], [2], [2]])
 
     t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
+    t.load_data(data)
+    t.fit_transform(metric=None, lens=None)
 
-    clusterer = DBSCAN(eps=0.2, min_samples=3)
-    t.map(resolution=2, overlap=0.3, clusterer=clusterer)
+    t.map(resolution=2, overlap=0.3, eps=0.2, min_samples=3)
 
-    t.color(target, dtype="numerical", ctype="rgb", normalized=False)
+    t.color(target, color_method="mean", color_type="rgb", normalize=False)
 
     test_color = ['#0000b2', '#00b200', '#b2b200']
 
-    assert t.colors == test_color
+    assert t.hex_colors == test_color
 
 
-def test_color_categorical_gray():
+def test_color_mode_gray():
     data = np.array([[0., 0.],
                      [0.1, 0.1],
                      [0.2, 0.2],
@@ -158,19 +373,19 @@ def test_color_categorical_gray():
                        [2], [2], [2]])
 
     t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
+    t.load_data(data)
+    t.fit_transform(metric=None, lens=None)
 
-    clusterer = DBSCAN(eps=0.2, min_samples=3)
-    t.map(resolution=2, overlap=0.3, clusterer=clusterer)
+    t.map(resolution=2, overlap=0.3, eps=0.2, min_samples=3)
 
-    t.color(target, dtype="categorical", ctype="gray", normalized=False)
+    t.color(target, color_method="mode", color_type="gray", normalize=False)
 
     test_color = ['#dcdcdc', '#787878', '#464646']
 
-    assert t.colors == test_color
+    assert t.hex_colors == test_color
 
 
-def test_color_numerical_gray():
+def test_color_mean_gray():
     data = np.array([[0., 0.],
                      [0.1, 0.1],
                      [0.2, 0.2],
@@ -186,94 +401,16 @@ def test_color_numerical_gray():
                        [2], [2], [2]])
 
     t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
+    t.load_data(data)
+    t.fit_transform(metric=None, lens=None)
 
-    clusterer = DBSCAN(eps=0.2, min_samples=3)
-    t.map(resolution=2, overlap=0.3, clusterer=clusterer)
+    t.map(resolution=2, overlap=0.3, eps=0.2, min_samples=3)
 
-    t.color(target, dtype="numerical", ctype="gray", normalized=False)
+    t.color(target, color_method="mean", color_type="gray", normalize=False)
 
     test_color = ['#dcdcdc', '#787878', '#464646']
 
-    assert t.colors == test_color
-
-
-def test_transform_none_input():
-    data = None
-    t = Topology()
-    with pytest.raises(Exception):
-        t.fit_transform(data)
-
-
-def test_transform_1darray_input():
-    data = np.array([])
-    t = Topology()
-    with pytest.raises(ValueError):
-        t.fit_transform(data)
-
-
-def test_transform_3darray_input():
-    data = np.array([[[]]])
-    t = Topology()
-    with pytest.raises(ValueError):
-        t.fit_transform(data)
-
-
-def test_map_none_input():
-    t = Topology()
-    t.point_cloud = None
-    with pytest.raises(Exception):
-        t.map()
-
-
-def test_map_1darray_input():
-    t = Topology()
-    t.point_cloud = np.array([])
-    with pytest.raises(ValueError):
-        t.map()
-
-
-def test_map_3darray_input():
-    t = Topology()
-    t.point_cloud = np.array([[[]]])
-    with pytest.raises(ValueError):
-        t.map()
-
-
-def test_map_resolution_value_error():
-    data = np.array([[0., 0.],
-                     [0.25, 0.25],
-                     [0.5, 0.5],
-                     [0.75, 0.75],
-                     [1., 1.],
-                     [1., 0.],
-                     [0.25, 0.75],
-                     [0.75, 0.25],
-                     [0., 1.]])
-
-    t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
-
-    with pytest.raises(ValueError):
-        t.map(resolution=0, overlap=0.3, clusterer=None)
-
-
-def test_map_overlap_value_error():
-    data = np.array([[0., 0.],
-                     [0.25, 0.25],
-                     [0.5, 0.5],
-                     [0.75, 0.75],
-                     [1., 1.],
-                     [1., 0.],
-                     [0.25, 0.75],
-                     [0.75, 0.25],
-                     [0., 1.]])
-
-    t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
-
-    with pytest.raises(ValueError):
-        t.map(resolution=10, overlap=-0.1, clusterer=None)
+    assert t.hex_colors == test_color
 
 
 def test_color_none_input():
@@ -290,11 +427,12 @@ def test_color_none_input():
     target = None
 
     t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
-    t.map(resolution=2, overlap=0.3, clusterer=None)
+    t.load_data(data)
+    t.fit_transform()
+    t.map()
 
     with pytest.raises(Exception):
-        t.color(target, dtype="categorical", ctype="rgb", normalized=False)
+        t.color(target)
 
 
 def test_color_different_size_input():
@@ -311,14 +449,15 @@ def test_color_different_size_input():
     target = np.array([0, 1, 2])
 
     t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
-    t.map(resolution=2, overlap=0.3, clusterer=None)
+    t.load_data(data)
+    t.fit_transform()
+    t.map()
 
     with pytest.raises(ValueError):
-        t.color(target, dtype="categorical", ctype="rgb", normalized=False)
+        t.color(target)
 
 
-def test_color_dtype():
+def test_color_color_method():
     data = np.array([[0., 0.],
                      [0.1, 0.1],
                      [0.2, 0.2],
@@ -334,11 +473,12 @@ def test_color_dtype():
                        [2], [2], [2]])
 
     t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
-    t.map(resolution=2, overlap=0.3, clusterer=None)
+    t.load_data(data)
+    t.fit_transform()
+    t.map(resolution=2, overlap=0.3)
 
     with pytest.raises(Exception):
-        t.color(target, dtype="somecategory", ctype="rgb", normalized=False)
+        t.color(target, color_method="hoge")
 
 
 def test_color_ctype():
@@ -357,25 +497,15 @@ def test_color_ctype():
                        [2], [2], [2]])
 
     t = Topology()
-    t.fit_transform(data, metric=None, lens=None)
-    t.map(resolution=2, overlap=0.3, clusterer=None)
+    t.load_data(data)
+    t.fit_transform()
+    t.map(resolution=2, overlap=0.3)
 
     with pytest.raises(Exception):
-        t.color(target, dtype="categorical", ctype="somecolortype", normalized=False)
+        t.color(target, color_type="hoge")
 
 
-def test_regist_categorical_data():
-    category = np.array([["a"], ["a"], ["a"],
-                         ["b"], ["b"], ["b"],
-                         ["c"], ["c"], ["c"]])
-
-    t = SearchableTopology()
-    t.regist_categorical_data(category)
-
-    assert_array_equal(t.categorical_data, category)
-
-
-def test_search():
+def test_search_text_data():
     data = np.array([[0., 0.],
                      [0.1, 0.1],
                      [0.2, 0.2],
@@ -390,16 +520,138 @@ def test_search():
                        [1], [1], [1],
                        [2], [2], [2]])
 
-    category = np.array([["a"], ["a"], ["a"],
-                         ["b"], ["b"], ["b"],
-                         ["c"], ["c"], ["c"]])
+    text_data = np.array([["a"], ["a"], ["a"],
+                          ["b"], ["b"], ["b"],
+                          ["c"], ["c"], ["c"]])
 
-    t = SearchableTopology()
-    t.regist_categorical_data(category)
-    t.fit_transform(data, metric=None, lens=None)
-    t.map(resolution=2, overlap=0.3, clusterer=None)
-    t.color(target, dtype="categorical", ctype="rgb", normalized=False)
-    t.search("a")
+    t = Topology()
+    t.load_data(data, text_data=text_data)
+    t.fit_transform(metric=None, lens=None)
+    t.map(resolution=2, overlap=0.3)
+    t.color(target, color_method="mean", color_type="rgb", normalize=False)
+    search_dicts = [{
+        "data_type": "text",
+        "operator": "=",
+        "column": 0,
+        "value": "a"
+    }]
+    t.search_from_values(search_dicts=search_dicts, target=None, search_type="index")
 
     test_color = ['#0000b2', '#cccccc', '#cccccc']
-    assert t.colors == test_color
+    assert t.hex_colors == test_color
+
+
+def test_search_number_data():
+    data = np.array([[0., 0.],
+                     [0.1, 0.1],
+                     [0.2, 0.2],
+                     [0.2, 0.8],
+                     [0.1, 0.9],
+                     [0., 1.],
+                     [0.8, 0.8],
+                     [0.9, 0.9],
+                     [1., 1.]])
+
+    target = np.array([[0], [0], [0],
+                       [1], [1], [1],
+                       [2], [2], [2]])
+
+    text_data = np.array([["a"], ["a"], ["a"],
+                          ["b"], ["b"], ["b"],
+                          ["c"], ["c"], ["c"]])
+
+    t = Topology()
+    t.load_data(data, text_data=text_data)
+    t.fit_transform(metric=None, lens=None)
+    t.map(resolution=2, overlap=0.3)
+    t.color(target, color_method="mean", color_type="rgb", normalize=False)
+    search_dicts = [{
+        "data_type": "number",
+        "operator": ">",
+        "column": 0,
+        "value": 0.7
+    }]
+    t.search_from_values(search_dicts=search_dicts, target=None, search_type="index")
+
+    test_color = ['#cccccc', '#cccccc', '#b2b200']
+    assert t.hex_colors == test_color
+
+
+def test_search_multiple_values():
+    data = np.array([[0., 0.],
+                     [0.1, 0.1],
+                     [0.2, 0.2],
+                     [0.2, 0.8],
+                     [0.1, 0.9],
+                     [0., 1.],
+                     [0.8, 0.8],
+                     [0.9, 0.9],
+                     [1., 1.]])
+
+    target = np.array([[0], [0], [0],
+                       [1], [1], [1],
+                       [2], [2], [2]])
+
+    text_data = np.array([["a"], ["a"], ["a"],
+                          ["b"], ["b"], ["b"],
+                          ["c"], ["c"], ["c"]])
+
+    t = Topology()
+    t.load_data(data, text_data=text_data)
+    t.fit_transform(metric=None, lens=None)
+    t.map(resolution=2, overlap=0.3)
+    t.color(target, color_method="mean", color_type="rgb", normalize=False)
+    search_dicts = [{
+        "data_type": "number",
+        "operator": "<",
+        "column": 0,
+        "value": 0.3
+    }, {
+        "data_type": "text",
+        "operator": "like",
+        "column": 0,
+        "value": "a"
+    }]
+    t.search_from_values(search_dicts=search_dicts, target=None, search_type="index")
+
+    test_color = ['#0000b2', '#cccccc', '#cccccc']
+    assert t.hex_colors == test_color
+
+
+def test_search_target_data():
+    data = np.array([[0., 0.],
+                     [0.1, 0.1],
+                     [0.2, 0.2],
+                     [0.2, 0.8],
+                     [0.1, 0.9],
+                     [0., 1.],
+                     [0.8, 0.8],
+                     [0.9, 0.9],
+                     [1., 1.]])
+
+    columns = np.array(["columns1", "columns2"])
+
+    target = np.array([[0], [0], [0],
+                       [1], [1], [1],
+                       [2], [2], [2]])
+
+    text_data = np.array([["a"], ["a"], ["a"],
+                          ["b"], ["b"], ["b"],
+                          ["c"], ["c"], ["c"]])
+    text_data_columns = np.array(["text_columns"])
+
+    t = Topology()
+    t.load_data(data, number_data_columns=columns, text_data=text_data, text_data_columns=text_data_columns)
+    t.fit_transform(metric=None, lens=None)
+    t.map(resolution=2, overlap=0.3)
+    t.color(target, color_method="mean", color_type="rgb", normalize=False)
+    search_dicts = [{
+        "data_type": "number",
+        "operator": "=",
+        "column": "target",
+        "value": 2
+    }]
+    t.search_from_values(search_dicts=search_dicts, target=target, search_type="column")
+
+    test_color = ['#cccccc', '#cccccc', '#b2b200']
+    assert t.hex_colors == test_color
