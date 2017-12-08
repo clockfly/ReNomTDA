@@ -728,7 +728,7 @@ class TopologyCore(object):
 
             target: The array of values that is not input but use.
 
-            skip_header: Output with header or not. If you output header, text_column_names and number_column_names must not None.
+            skip_header: Skip header or not. If you set False, text_column_names and number_column_names must not None.
         """
         if len(node_ids) > 0:
             number_data = self._re_standardize(self.number_data)
