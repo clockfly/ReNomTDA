@@ -353,7 +353,7 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
     for key in canvas_params.keys():
         # インスタンス初期化
         topology = Topology(verbose=0)
-        topology.load_data(number_data=calc_data, standardize=True)
+        topology.load_data(number_data=calc_data, text_data=categorical_data, standardize=True)
 
         if _check_file_and_algorithm(db_data[key], canvas_params[key], filename):
             # アルゴリズムが変わっていたら次元削減
@@ -559,7 +559,7 @@ def _set_canvas_data(topology, db_data):
     topology.sizes = db_data["sizes"]
 
 
-def _search(search_params, canvas_params, db_data, color_data):
+def _search(search_params, canvas_params, db_data, color_data, categorical_data):
     canvas_colors = {}
 
     for key in canvas_params.keys():
@@ -582,16 +582,18 @@ def _search(search_params, canvas_params, db_data, color_data):
                            "data_type": data_type,
                            "operator": operators[search_params["operator_index"]],
                            "value": decoded_value}
+
             cdata = color_data[:, db_data[key]["color_index"]]
+            topology.load_data(color_data, text_data=categorical_data, standardize=True)
             if canvas_params[key]["mode"] == 3:
                 # トポロジーを検索
-                topology.search_from_values(search_dicts=[dict_values], target=cdata, search_type="column")
+                topology.search_from_values(search_dicts=[dict_values], target=None, search_type="index")
                 colors = topology.hex_colors
 
             else:
                 # point cloudを検索
                 topology.color_point_cloud(cdata)
-                topology.search_point_cloud(search_dicts=[dict_values], target=cdata, search_type="index")
+                topology.search_point_cloud(search_dicts=[dict_values], target=None, search_type="index")
                 colors = topology.point_cloud_hex_colors
 
         canvas_colors.update({key: {"colors": colors}})
@@ -630,8 +632,9 @@ def search():
     numerical_data = np.array(pdata.loc[:, numerical_data_index])
     # 色付けに使うデータを抽出
     color_data = numerical_data[:, colorize_topology_index]
+    categorical_data = pdata.loc[:, categorical_data_index]
 
-    canvas_colors = _search(search_params, canvas_params, db_data, color_data)
+    canvas_colors = _search(search_params, canvas_params, db_data, color_data, categorical_data)
 
     body = json.dumps({"canvas_colors": canvas_colors})
     r = set_json_body(body)

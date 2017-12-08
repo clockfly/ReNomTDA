@@ -702,7 +702,7 @@ class TopologyCore(object):
             raise ValueError("Data type must be 'column' or 'index'.")
 
         if search_type == "column":
-            if self.text_data is not None and self.text_data_columns is None:
+            if self.text_data.shape[0] > 0 and self.text_data_columns is None:
                 raise ValueError("When search type is column, text_data_columns must not None.")
 
             if self.number_data_columns is None:
