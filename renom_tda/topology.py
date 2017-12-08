@@ -19,8 +19,10 @@ from sklearn import cluster, decomposition, preprocessing
 
 
 class TopologyCore(object):
-    """
-    TDA Core class
+    """Class of TDA core function
+
+    Params:
+        verbose: Show progress of calculation or not. 0(don't show) or 1(show).
     """
     def __init__(self, verbose=1):
         self.verbose = verbose
@@ -57,12 +59,14 @@ class TopologyCore(object):
         self.hex_colors = None
 
     def _standardize(self, data):
+        # データの標準化
         self.number_data_avg = np.average(data, axis=0)
         self.number_data_std = np.std(data, axis=0)
         standardize_data = (data - self.number_data_avg) / (self.number_data_std + 1e-10)
         return standardize_data
 
     def _re_standardize(self, data):
+        # 標準化を戻す
         if self.standardize:
             standardize_data = data * (self.number_data_std + 1e-10) + self.number_data_avg
             return standardize_data
@@ -70,6 +74,7 @@ class TopologyCore(object):
             return data
 
     def _normalize(self, data, feature_range=(0, 1)):
+        # 正規化
         data = data.astype(np.float)
         scaler = preprocessing.MinMaxScaler(feature_range=feature_range)
         return scaler.fit_transform(data)
@@ -104,17 +109,20 @@ class TopologyCore(object):
             return data
 
     def _scale_data(self, data, scaler):
+        # scalerを使ってデータをスケーリング
         if (scaler is not None) and ("fit_transform" in dir(scaler)):
             return scaler.fit_transform(data)
         else:
             return data
 
     def _calc_dist_vec(self, data):
+        # データ点の距離を小さい順に並べたベクトルを返す。
         dist_mat = scipy.spatial.distance.cdist(data, data)
         dist_vec = np.trim_zeros(np.unique(dist_mat))
         return dist_vec
 
     def _calc_dist_from_eps(self, dist_vec, eps):
+        # 距離のベクトルの最小を0,最大を1とした時にepsにあたる距離を返す。
         d_min = dist_vec.min()
         d_max = dist_vec.max()
         return d_min + (d_max - d_min) * eps
@@ -201,6 +209,7 @@ class TopologyCore(object):
                     self.edges = np.concatenate([self.edges, edge], axis=0)
 
     def _calc_color_values(self, target, color_method):
+        # 色を計算する
         ret_colors = np.zeros((len(self.hypercubes), 1))
         for key in self.hypercubes.keys():
             target_in_node = target[self.hypercubes[key]]
@@ -213,6 +222,8 @@ class TopologyCore(object):
         return ret_colors
 
     def _rescale_colors(self, colors, thresholds=[0, 0.25, 0.5, 0.75, 1.0]):
+        # 色のスケールを調整する
+        # 偏りが多いデータでもなるべく青~赤にグラデーションするように
         ret_colors = np.zeros((len(colors), 1))
         for index, threshold in enumerate(thresholds):
             if index == len(thresholds) - 1:
@@ -281,6 +292,7 @@ class TopologyCore(object):
         return init_position
 
     def _spring_plot(self, fig_size, node_size, edge_width, strength):
+        # 力学モデルを使ってプロット
         init_position = self._calc_init_position()
 
         # ネットワークグラフで描画する。
@@ -299,6 +311,7 @@ class TopologyCore(object):
         plt.axis("off")
 
     def _get_search_column_index(self, columns, search_dict, search_type):
+        # 検索したいカラムのインデックスを返す
         column_index = None
         if search_type == "column":
             index_array = np.where(columns == search_dict["column"])[0]
@@ -309,6 +322,7 @@ class TopologyCore(object):
         return column_index
 
     def _number_search(self, data, value, operator):
+        # 数字データの検索
         index = []
         if operator == "=":
             index.extend(np.where(data == value)[0])
@@ -319,6 +333,7 @@ class TopologyCore(object):
         return index
 
     def _text_search(self, data, value, operator):
+        # テキストデータの検索
         index = []
         if operator == "=":
             index.extend(np.where(data == value)[0])
@@ -329,24 +344,30 @@ class TopologyCore(object):
         return index
 
     def _data_index_from_search_dict(self, search_number_data, search_number_data_columns, search_dicts, search_type):
+        # 検索したデータのインデックスを取得する
         data_index = []
         for search_dict in search_dicts:
             index = []
             if search_dict["data_type"] == "number":
+                # 数字データの検索
                 column_index = self._get_search_column_index(search_number_data_columns, search_dict, search_type)
                 if column_index is not None:
                     index = self._number_search(search_number_data[:, column_index],
                                                 search_dict["value"], search_dict["operator"])
             else:
+                # テキストデータの検索
                 column_index = self._get_search_column_index(self.text_data_columns, search_dict, search_type)
                 if column_index is not None:
                     index = self._text_search(self.text_data[:, column_index],
                                               search_dict["value"], search_dict["operator"])
 
             if len(data_index) > 0:
+                # 検索結果のインデックスを結合する
+                # setにして重複をなくす
                 if len(index) > 0:
                     s1 = set(data_index)
                     s2 = set(index)
+                    # and検索なので、複数条件の時は両方を満たすものだけ返す
                     data_index = list(s1.intersection(s2))
             else:
                 data_index = index
@@ -354,6 +375,7 @@ class TopologyCore(object):
         return data_index
 
     def _node_index_from_data_id(self, data_index):
+        # データのインデックスからそのデータを含むノードのインデックスを返す
         node_index = []
         values = self.hypercubes.values()
         for i, val in enumerate(values):
@@ -364,12 +386,16 @@ class TopologyCore(object):
         return node_index
 
     def _set_search_color(self, node_index):
+        # 検索結果の色をセットする
+        # 検索結果以外のノードをグレーにする
         searched_color = ["#cccccc"] * len(self.hypercubes.keys())
         for i in node_index:
             searched_color[i] = self.hex_colors[i]
         self.hex_colors = searched_color
 
     def _concatenate_target(self, data, target):
+        # dataとtargetを結合する
+        # カラム名もあれば結合する
         if target is not None:
             number_data = np.concatenate([data, target.reshape(-1, 1)], axis=1)
             if self.number_data_columns is not None:
@@ -381,6 +407,7 @@ class TopologyCore(object):
             return data, self.number_data_columns
 
     def _data_index_from_node_id(self, node_ids):
+        # ノードのインデックスからノードに含まれるデータのインデックスを取得する
         data_index = []
         for nid in node_ids:
             data_index.extend(self.hypercubes[nid])
@@ -388,8 +415,18 @@ class TopologyCore(object):
 
     def load_data(self, number_data, text_data=None, text_data_columns=None,
                   number_data_columns=None, standardize=False):
-        """
-        load data
+        """Function of load data to this instance.
+
+        Params:
+            number_data: Data using calclate topology.
+
+            text_data: Text data correspond to number data.
+
+            text_data_columns: Column names of text data.
+
+            number_data_columns: Column names of number data.
+
+            standardize: standardize number data or not.
         """
         # number dataは必須
         if number_data is None:
@@ -434,8 +471,14 @@ class TopologyCore(object):
         self.number_data_columns = number_data_columns
 
     def fit_transform(self, metric=None, lens=None, scaler=preprocessing.MinMaxScaler()):
-        """
-        project data to point cloud
+        """Function of projection data to point cloud.
+
+        Params:
+            metric: Class of distance metric.
+
+            lens: List of clss of projection lens.
+
+            scaler: Class of scaling.
         """
         if self.number_data is None:
             raise ValueError("Data must not None.")
@@ -451,8 +494,16 @@ class TopologyCore(object):
         self.point_cloud = self._scale_data(d, scaler)
 
     def map(self, resolution=10, overlap=1, eps=1, min_samples=1):
-        """
-        map point cloud to topological space
+        """Function of mapping point cloud to topological space.
+
+        Params:
+            resolution: The number of division of each axis.
+
+            overlap: The width of overlapping of division.
+
+            eps: The distance of clustering of data in each division.
+
+            min_samples: The least number of each cluster.
         """
         if self.point_cloud is None:
             raise ValueError("Point cloud is not exist yet.")
@@ -501,8 +552,16 @@ class TopologyCore(object):
                 print("created %s edges." % (len(self.edges)))
 
     def color(self, target, color_method="mean", color_type="rgb", normalize=False):
-        """
-        colored by target
+        """Function of coloring topology with target.
+
+        Params:
+            target: The array of coloring values.
+
+            color_method: The method of calculating color value. "mean" or "mode".
+
+            color_type: "rgb" or "gray".
+
+            normalize: Normalize target data or not.
         """
         if target is None:
             raise Exception("Target must not None.")
@@ -537,8 +596,18 @@ class TopologyCore(object):
         self._calc_hex_color_values(color_type)
 
     def show(self, fig_size=(5, 5), node_size=5, edge_width=1, mode=None, strength=None):
-        """
-        show graph
+        """Function of show topology.
+
+        Params:
+            fig_size: The size of showing figure.
+
+            node_size: The size of node.
+
+            edge_width: The width of edge.
+
+            mode: Layout mode. "spring" or None.
+
+            strength: The strength of repulsive force between nodes in "spring" mode.
         """
         if mode == "spring":
             self._spring_plot(fig_size, node_size, edge_width, strength)
@@ -546,9 +615,21 @@ class TopologyCore(object):
             self._plot(fig_size, node_size, edge_width)
         plt.show()
 
-    def save(self, filename, mode=None, fig_size=(5, 5), node_size=5, edge_width=1, strength=None):
-        """
-        save graph
+    def save(self, filename, fig_size=(5, 5), node_size=5, edge_width=1, mode=None, strength=None):
+        """Function of save topology.
+
+        Params:
+            filename: The name of output image.
+
+            fig_size: The size of showing figure.
+
+            node_size: The size of node.
+
+            edge_width: The width of edge.
+
+            mode: Layout mode. "spring" or None.
+
+            strength: The strength of repulsive force between nodes in "spring" mode.
         """
         if mode == "spring":
             self._spring_plot(fig_size, node_size, edge_width, strength)
@@ -557,8 +638,13 @@ class TopologyCore(object):
         plt.savefig(filename)
 
     def search_from_id(self, node_id):
-        """
-        search from id
+        """Function of search node from id.
+
+        Params:
+            node_id: ID of node.
+
+        Return:
+            Summary of searched node data.
         """
         data_ids = self.hypercubes[node_id]
 
@@ -603,8 +689,14 @@ class TopologyCore(object):
         return result
 
     def search_from_values(self, search_dicts=None, target=None, search_type="index"):
-        """
-        search from dict
+        """Function of search node with values.
+
+        Params:
+            search_dicts: The array of search options.
+
+            target: The array of values that is not input but wan't to search.
+
+            search_type: How to get column index in search_dicts. "column" or "index".
         """
         if search_type not in ["column", "index"]:
             raise ValueError("Data type must be 'column' or 'index'.")
@@ -627,8 +719,16 @@ class TopologyCore(object):
         return node_index
 
     def output_csv_from_node_ids(self, filename, node_ids=[], target=None, skip_header=False):
-        """
-        output file
+        """Function of output csv file with node ids.
+
+        Params:
+            filename: The name of output csv file.
+
+            node_ids: The array of node ids in output data.
+
+            target: The array of values that is not input but use.
+
+            skip_header: Output with header or not. If you wan't to output header, text_column_names and number_column_names must not None.
         """
         if len(node_ids) > 0:
             number_data = self._re_standardize(self.number_data)
@@ -651,8 +751,10 @@ class TopologyCore(object):
 
 
 class Topology(TopologyCore):
-    """
-    TDA class
+    """Class of TDA & point cloud function.
+
+    Params:
+        verbose: Show progress of calculation or not. 0(don't show) or 1(show).
     """
 
     def __init__(self, verbose=1):
@@ -661,6 +763,7 @@ class Topology(TopologyCore):
         self.point_cloud_sizes = None
 
     def _calc_point_cloud_hex_color(self, target, color_type):
+        # point cloudの色
         for i, t in enumerate(target):
             if color_type == "rgb":
                 hex_color = self._hex_color(t)
@@ -670,6 +773,7 @@ class Topology(TopologyCore):
             self.point_cloud_hex_colors[i] = hex_color
 
     def _get_train_test_index(self, length, size=0.9):
+        # 学習データとテストデータに分ける
         threshold = int(length * size)
         index = np.random.permutation(length)
         train_index = np.sort(index[:threshold])
@@ -677,14 +781,21 @@ class Topology(TopologyCore):
         return train_index, test_index
 
     def _set_search_point_cloud_color(self, data_index):
+        # 検索結果以外の色をグレーにする
         searched_color = ["#cccccc"] * len(self.point_cloud)
         for i in data_index:
             searched_color[i] = self.point_cloud_hex_colors[i]
         self.point_cloud_hex_colors = searched_color
 
     def color_point_cloud(self, target, color_type="rgb", normalize=False):
-        """
-        color point cloud by target
+        """Function of coloring point cloud with target.
+
+        Params:
+            target: The array of coloring values.
+
+            color_type: "rgb" or "gray".
+
+            normalize: Normalize target data or not.
         """
         if target is None:
             raise Exception("Target must not None.")
@@ -713,6 +824,15 @@ class Topology(TopologyCore):
         self._calc_point_cloud_hex_color(scaled_target, color_type)
 
     def supervised_clustering_point_cloud(self, clusterer=None, target=None, train_size=0.9):
+        """Function of supervised clustering of point cloud.
+
+        Params:
+            clusterer: Class of clustering.
+
+            target: target data.
+
+            train_size: The size of Training data.
+        """
         if clusterer is not None and "fit" in dir(clusterer) and target is not None:
             # 教師データとテストデータに分ける
             self.train_index, test_index = self._get_train_test_index(self.point_cloud.shape[0], train_size)
@@ -729,12 +849,24 @@ class Topology(TopologyCore):
             self.point_cloud_hex_colors = [self._hex_color(i) for i in labels]
 
     def unsupervised_clustering_point_cloud(self, clusterer=None):
+        """Function of unsupervised clustering of point cloud.
+
+        Params:
+            clusterer: Class of clustering.
+        """
         if clusterer is not None and "fit" in dir(clusterer):
             clusterer.fit(self.point_cloud)
             labels = self._normalize(clusterer.labels_.reshape(-1, 1))
             self.point_cloud_hex_colors = [self._hex_color(i) if i >= 0 else "#000000" for i in labels]
 
     def show_point_cloud(self, fig_size=(5, 5), node_size=5):
+        """Function of showing point cloud.
+
+        Params:
+            fig_size: The size of showing figure.
+
+            node_size: The size of node.
+        """
         fig = plt.figure(figsize=fig_size)
         ax = fig.add_subplot(111)
         ax.scatter(self.point_cloud[:, 0], self.point_cloud[:, 1], c=self.point_cloud_hex_colors, s=node_size)
@@ -742,6 +874,15 @@ class Topology(TopologyCore):
         plt.show()
 
     def search_point_cloud(self, search_dicts=None, target=None, search_type="index"):
+        """Function of search point cloud with values.
+
+        Params:
+            search_dicts: The array of search options.
+
+            target: The array of values that is not input but wan't to search.
+
+            search_type: How to get column index in search_dicts. "column" or "index".
+        """
         search_number_data = self._re_standardize(self.number_data)
         search_number_data, search_number_data_columns = self._concatenate_target(search_number_data, target)
 

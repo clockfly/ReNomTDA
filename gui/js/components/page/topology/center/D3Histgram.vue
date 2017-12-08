@@ -46,24 +46,25 @@ export default {
         .range([height, 0]);
 
       let interpolation_hsv = function(value, q_min, q_max, val_min, val_max) {
-        let i = (value - val_min) / (val_max - val_min);
+        let i;
+        if(val_min == val_max){
+          i = value;
+        }else{
+          i = (value - val_min) / (val_max - val_min);
+        }
         let h = i * 0.25 + q_min;
         let hsv = d3.hsl((1-h)*240, 0.7, 0.5);
         return hsv+"";
       }
 
       let get_hsv_color = function(values) {
-        let sum = 0;
-        for(let i=0; i<values.length; i++){
-            sum += values[i];
-        }
-        let avg = sum/values.length;
+        let avg = values[0];
 
         if(avg < statistic_value[0]){
           return interpolation_hsv(avg, 0, 0.25, min_x, statistic_value[0]);
-        }else if(avg > statistic_value[0] && avg < statistic_value[1]){
+        }else if(avg >= statistic_value[0] && avg <= statistic_value[1]){
           return interpolation_hsv(avg, 0.25, 0.5, statistic_value[0], statistic_value[1]);
-        }else if(avg > statistic_value[1] && avg < statistic_value[2]){
+        }else if(avg >= statistic_value[1] && avg <= statistic_value[2]){
           return interpolation_hsv(avg, 0.5, 0.75, statistic_value[1], statistic_value[2]);
         }else{
           return interpolation_hsv(avg, 0.75, 1.0, statistic_value[2], max_x);
