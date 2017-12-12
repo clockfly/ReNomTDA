@@ -70,7 +70,7 @@
       </div>
     </div>
 
-    <div class="input-group vertical" v-if="mode == 0 || (mode == 1 && clustering_index > 1) || mode == 2">
+    <div class="input-group vertical" v-if="mode == 0 || mode == 2 || mode == 3">
       <label for="color_index">colored by:</label>
       <select v-model="color_index" v-on:change="set_color_index">
         <option v-for="(item, index) in color_labels" :value="index">{{item}}</option>

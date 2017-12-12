@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+// TODO
+// actionのメソッドがreturnしないように変更する.
 let TopologyAction = {
   load_file(context, payload) {
     context.commit('set_loading');

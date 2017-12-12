@@ -11,177 +11,133 @@ import networkx as nx
 
 import numpy as np
 
+import pandas as pd
+
 import scipy
 
 from sklearn import cluster, decomposition, preprocessing
 
 
-class Topology(object):
-    """Topology Class
+class TopologyCore(object):
+    """Class of TDA core function
 
-    Example:
-        >>> from sklearn.datasets import load_iris
-        >>> from sklearn.cluster import DBSCAN
-        >>> from renom.tda.topology import Topology
-        >>> from renom.tda.metric import Distance
-        >>> from renom.tda.lens import L1Centrality, GaussianDensity, PCA
-        >>> data, target = load_iris().data, load_iris().target
-        >>> print(data.shape, target.shape)
-        (150, 4) (150,)
-        >>> print(data.shape)
-        (150, 4)
-        >>> topology = Topology()
-        >>> metric = Distance(metric="euclidean")
-        >>> lens = [L1Centrality(), GaussianDensity()]
-        Mapping to L1Centrality and GaussianDensity.
-        >>> topology.fit_transform(data, metric=metric, lens=lens)
-        calculated distance matrix by Distance class using euclidean distance.
-        projected by L1Centrality.
-        projected by GaussianDensity.
-        finish fit_transform.
-        >>> topology.point_cloud.shape
-        (150, 2)
-        >>> clusterer = DBSCAN(eps=1, min_samples=3)
-        >>> topology.map(resolution=10, overlap=0.5, clusterer=clusterer)
-        mapping start, please wait...
-        created 53 nodes.
-        calculating cluster coordination.
-        calculating edge.
-        created 123 edges.
-        >>> topology.nodes.shape
-        (53, 2)
-        >>> topology.edges.shape
-        (123, 2)
-        >>> len(topology.hypercubes)
-        53
-        >>> topology.color(target, dtype="categorical", ctype="rgb")
-        Topology is colored by target value.
-        >>> topology.show(fig_size=(10,10), node_size=5, edge_width=1, mode="spring", strength=0.05)
-        Show topology usnig spring model.
+    Params:
+        verbose: Show progress of calculation or not. 0(don't show) or 1(show).
     """
-
     def __init__(self, verbose=1):
         self.verbose = verbose
+        self._init_params()
+
+    def _init_params(self):
+        # input data
+        self.text_data = None
+        self.text_data_columns = None
+        self.number_data = None
+        self.number_data_columns = None
+        # standardize info
+        self.standardize = False
+        self.number_data_avg = None
+        self.number_data_std = None
+        # transform
         self.metric = None
         self.lens = None
         self.scaler = None
-        self.clusterer = None
+        # map
         self.resolution = 0
         self.overlap = 0
-        self.input_data = None
+        self.eps = 0
+        self.min_samples = 0
+        # output data
+        self.train_index = np.array([])
         self.point_cloud = None
-        self.nodes = None
-        self.node_sizes = None
-        self.edges = None
-        self.colors = None
         self.hypercubes = {}
+        self.nodes = None
+        self.edges = None
+        self.node_sizes = None
+        self.colors = None
+        self.color_target = None
+        self.hex_colors = None
 
-    def fit_transform(self, data, metric=None, lens=None, scaler=preprocessing.MinMaxScaler()):
-        """Function of projection data to point cloud.
+    def _standardize(self, data):
+        # データの標準化
+        self.number_data_avg = np.average(data, axis=0)
+        self.number_data_std = np.std(data, axis=0)
+        standardize_data = (data - self.number_data_avg) / (self.number_data_std + 1e-10)
+        return standardize_data
 
-        Params:
-            data: raw data.
+    def _re_standardize(self, data):
+        # 標準化を戻す
+        if self.standardize:
+            standardize_data = data * (self.number_data_std + 1e-10) + self.number_data_avg
+            return standardize_data
+        else:
+            return data
 
-            metric: Class of trainsforming distance matrix.
+    def _normalize(self, data, feature_range=(0, 1)):
+        # 正規化
+        data = data.astype(np.float)
+        scaler = preprocessing.MinMaxScaler(feature_range=feature_range)
+        return scaler.fit_transform(data)
 
-            lens: List of projection lens class.
-
-            scaler: Class of scaling.
-        """
-        if data is None:
-            raise Exception("Data must not None.")
-
-        if type(data) is not np.ndarray:
-            data = np.array(data)
-
-        if data.ndim != 2:
-            raise ValueError("Data must be 2d array.")
-
-        self.input_data = data
-        self.metric = metric
-        self.lens = lens
-        self.scaler = scaler
-
+    def _create_dist_matrix(self, metric):
         # metricをもとに距離行列を作る。
         if (metric is not None) and ("fit_transform" in dir(metric)):
             if self.verbose == 1:
                 print("calculated distance matrix by %s class using %s distance." %
                       (self.metric.__class__.__name__, self.metric.metric))
-            dist_matrix = metric.fit_transform(data)
+            return metric.fit_transform(self.number_data)
         else:
-            # metricがNoneならdataをそのまま使う
-            dist_matrix = data
+            # metricがNoneならdataをそのまま返す
+            return self.number_data
 
+    def _project_data(self, data, lens):
+        ret_data = None
         # lensによって射影後の次元数は異なるのでNoneで初期化
-        self.point_cloud = None
         if (lens is not None) and (len(lens) > 0):
             for l in lens:
                 if (l is not None) and "fit_transform" in dir(l):
                     if self.verbose == 1:
                         print("projected by %s." % (l.__class__.__name__))
-                    if self.point_cloud is None:
-                        self.point_cloud = l.fit_transform(dist_matrix)
+
+                    if ret_data is None:
+                        ret_data = l.fit_transform(data)
                     else:
-                        p = l.fit_transform(dist_matrix)
-                        self.point_cloud = np.concatenate([self.point_cloud, p], axis=1)
-                else:
-                    self.point_cloud = dist_matrix
+                        p = l.fit_transform(data)
+                        ret_data = np.concatenate([ret_data, p], axis=1)
+            return ret_data
         else:
-            # lensがNoneならdist_matrixをそのまま使う
-            self.point_cloud = dist_matrix
+            return data
 
-        # scalerで正規化。
-        if self.point_cloud is not None:
-            if (scaler is not None) and ("fit_transform" in dir(scaler)):
-                self.point_cloud = scaler.fit_transform(self.point_cloud)
+    def _scale_data(self, data, scaler):
+        # scalerを使ってデータをスケーリング
+        if (scaler is not None) and ("fit_transform" in dir(scaler)):
+            return scaler.fit_transform(data)
+        else:
+            return data
 
-        if self.verbose == 1:
-            print("finish fit_transform.")
+    def _calc_dist_vec(self, data):
+        # データ点の距離を小さい順に並べたベクトルを返す。
+        dist_mat = scipy.spatial.distance.cdist(data, data)
+        dist_vec = np.trim_zeros(np.unique(dist_mat))
+        return dist_vec
 
-    def map(self, resolution=10, overlap=0.5, clusterer=cluster.DBSCAN(eps=1, min_samples=1)):
-        """Function of mapping point cloud to topological space.
+    def _calc_dist_from_eps(self, dist_vec, eps):
+        # 距離のベクトルの最小を0,最大を1とした時にepsにあたる距離を返す。
+        d_min = dist_vec.min()
+        d_max = dist_vec.max()
+        return d_min + (d_max - d_min) * eps
 
-        Params:
-            resolution: The number of divisoin of each axis. It controls the number of division.
-
-            overlap: The amount of overlap of each division. It represents easiness of connection.
-
-            clusterer: The method of clustering of each division.
-        """
-        if self.point_cloud is None:
-            raise Exception("Point cloud is not exist yet.")
-
-        if self.point_cloud.ndim != 2:
-            raise ValueError("Data must be 2d array.")
-
-        if resolution <= 0:
-            raise ValueError("Resolution must be greater than Zero.")
-
-        if overlap < 0:
-            raise ValueError("Overlap must be greater than Zero.")
-
-        self.clusterer = clusterer
-        self.resolution = resolution
-        self.overlap = overlap
-        self.hypercubes = {}
-
-        scaler = preprocessing.MinMaxScaler()
-        scaled_data = scaler.fit_transform(self.input_data)
-
-        # 元のデータ点のindex。hypercubeに含まれるデータを特定するのに使う。
-        input_data_indexs = np.arange(self.point_cloud.shape[0])
+    def _create_hypercubes(self, resolution, overlap, clusterer):
+        # point_cloudのデータ点のindex。hypercubeに含まれるデータを特定するのに使う。
+        input_data_ids = np.arange(self.point_cloud.shape[0])
 
         # 作成したノードの数。hypercubeのidに使う。
         created_node_count = 0
 
         # 分割する間隔
         chunk_width = 1. / resolution
-
-        # 重なり
+        # 重なり幅
         overlap_width = chunk_width * overlap
-
-        if self.verbose == 1:
-            print("mapping start, please wait...")
 
         # hypercubeに分割する
         # resolution: 10, point_cloudが2次元なら、10x10の100個のhypercubeを作る
@@ -196,40 +152,31 @@ class Topology(object):
             mask = np.all(mask_floor & mask_roof, axis=1)
 
             # hypercubeに含まれるidを求める。
-            masked_data_indexs = input_data_indexs[mask]
+            masked_data_ids = input_data_ids[mask]
 
             # hypercubeに含まれる元の次元のデータを求める。
-            masked_data = scaled_data[mask]
+            masked_data = self.number_data[mask]
 
+            # hypercube内の点を元の次元の距離で再度クラスタリング
             if masked_data.shape[0] > 0:
                 if (clusterer is not None) and ("fit" in dir(clusterer)):
-                    # hypercube内の点を元の次元で再度クラスタリング
                     clusterer.fit(masked_data)
 
                     # クラスタリング結果のラベルでループを回す
                     for label in np.unique(clusterer.labels_):
                         # ラベルが-1の点はノイズとする
                         if label != -1:
-                            hypercube_value = list(masked_data_indexs[clusterer.labels_ == label])
+                            hypercube_value = list(masked_data_ids[clusterer.labels_ == label])
                             # 同じ値を持つhypercubeは作らない
                             if hypercube_value not in self.hypercubes.values():
                                 self.hypercubes.update(
                                     {created_node_count: hypercube_value})
                                 created_node_count += 1
                 else:
-                    self.hypercubes.update({created_node_count: masked_data_indexs})
+                    self.hypercubes.update({created_node_count: masked_data_ids})
                     created_node_count += 1
 
-        if self.verbose == 1:
-            print("created %s nodes." % (len(self.hypercubes)))
-
-        # nodeが0個なら終了
-        if len(self.hypercubes) == 0:
-            return
-
-        if self.verbose == 1:
-            print("calculating cluster coordination.")
-
+    def _calc_node_coordinate(self):
         # ノードの配列を(ノード数, 投影する次元数)の大きさで初期化する
         self.nodes = np.zeros((len(self.hypercubes), self.point_cloud.shape[1]))
         self.node_sizes = np.zeros((len(self.hypercubes), 1))
@@ -244,9 +191,7 @@ class Topology(object):
             self.nodes[int(key)] += node_coordinate
             self.node_sizes[int(key)] += len(data_in_node)
 
-        if self.verbose == 1:
-            print("calculating edge.")
-
+    def _calc_edges(self):
         # エッジの配列を初期化（最終的な大きさはわからないのでNoneで初期化）
         self.edges = None
 
@@ -263,74 +208,360 @@ class Topology(object):
                 else:
                     self.edges = np.concatenate([self.edges, edge], axis=0)
 
+    def _calc_color_values(self, target, color_method):
+        # 色を計算する
+        ret_colors = np.zeros((len(self.hypercubes), 1))
+        for key in self.hypercubes.keys():
+            target_in_node = target[self.hypercubes[key]]
+            if color_method == "mode":
+                # 最頻値
+                ret_colors[int(key)] = scipy.stats.mode(target_in_node)[0][0]
+            elif color_method == "mean":
+                # 平均値
+                ret_colors[int(key)] = np.average(target_in_node)
+        return ret_colors
+
+    def _rescale_colors(self, colors, thresholds=[0, 0.25, 0.5, 0.75, 1.0]):
+        # 色のスケールを調整する
+        # 偏りが多いデータでもなるべく青~赤にグラデーションするように
+        ret_colors = np.zeros((len(colors), 1))
+        for index, threshold in enumerate(thresholds):
+            if index == len(thresholds) - 1:
+                break
+            else:
+                r_max = thresholds[index + 1]
+            r_min = threshold
+
+            scaler = preprocessing.MinMaxScaler(feature_range=(r_min, r_max))
+
+            q_min = scipy.stats.scoreatpercentile(colors, r_min * 100)
+            q_max = scipy.stats.scoreatpercentile(colors, r_max * 100)
+
+            index_q = np.where(((q_min <= colors) & (colors <= q_max)))[0]
+            target_q = scaler.fit_transform(colors[index_q])
+            ret_colors[index_q] = target_q
+        return ret_colors
+
+    def _hex_color(self, i):
+        # rgbの色コードを返す関数。
+        # hsv色空間でiが0~1を青~赤に対応させる。
+        c = colorsys.hsv_to_rgb((1 - i) * 240 / 360, 1.0, 0.7)
+        return "#%02x%02x%02x" % (int(c[0] * 255), int(c[1] * 255), int(c[2] * 255))
+
+    def _grayscale_color(self, i):
+        # グレースケールの色コードを返す関数。
+        i = 1 - i
+        return "#%02x%02x%02x" % (int((i + 0.1) * 200), int((i + 0.1) * 200), int((i + 0.1) * 200))
+
+    def _calc_hex_color_values(self, color_type):
+        for key in self.hypercubes.keys():
+            if color_type == "rgb":
+                hex_color = self._hex_color(self.colors[int(key)])
+            elif color_type == "gray":
+                hex_color = self._grayscale_color(self.colors[int(key)])
+
+            self.hex_colors[int(key)] = hex_color
+
+    def _plot(self, fig_size, node_size, edge_width):
+        fig = plt.figure(figsize=fig_size)
+        ax = fig.add_subplot(111)
+        for e in self.edges:
+            ax.plot([self.nodes[e[0], 0], self.nodes[e[1], 0]],
+                    [self.nodes[e[0], 1], self.nodes[e[1], 1]],
+                    c=self.hex_colors[e[0]], lw=edge_width, zorder=1)
+        ax.scatter(self.nodes[:, 0], self.nodes[:, 1], c=self.hex_colors, s=self.node_sizes * node_size, zorder=2)
+        plt.axis("off")
+
+    def _calc_init_position(self):
+        # グラフの初期位置を設定する。
+        init_position = {}
+
+        # ノードの座標が1次元の時はPCAで2次元に落とした座標をクラスタの初期位置とする。
+        if self.nodes.shape[1] == 1:
+            m = decomposition.PCA(n_components=2)
+            s = preprocessing.MinMaxScaler()
+            d = m.fit_transform(self.input_data)
+            d = s.fit_transform(d)
+            for k in self.hypercubes.keys():
+                data_in_node = d[self.hypercubes[k]]
+                init_position.update({int(k): np.average(data_in_node, axis=0)})
+        elif self.nodes.shape[1] == 2 or self.nodes.shape[1] == 3:
+            # 2次元,3次元の時はノードの座標値上位２つを初期値にする。
+            for k in self.hypercubes.keys():
+                init_position.update({int(k): self.nodes[int(k), :2]})
+        return init_position
+
+    def _spring_plot(self, fig_size, node_size, edge_width, strength):
+        # 力学モデルを使ってプロット
+        init_position = self._calc_init_position()
+
+        # ネットワークグラフで描画する。
+        fig = plt.figure(figsize=fig_size)
+        fig.add_subplot(111)
+        graph = nx.Graph(pos=init_position)
+        graph.add_nodes_from(range(len(self.nodes)))
+        graph.add_edges_from(self.edges)
+        position = nx.spring_layout(graph, pos=init_position, k=strength)
+
+        nx.draw_networkx(graph, pos=position,
+                         node_size=self.node_sizes * node_size, node_color=self.hex_colors,
+                         width=edge_width,
+                         edge_color=[self.hex_colors[e[0]] for e in self.edges],
+                         with_labels=False)
+        plt.axis("off")
+
+    def _get_search_column_index(self, columns, search_dict, search_type):
+        # 検索したいカラムのインデックスを返す
+        column_index = None
+        if search_type == "column":
+            index_array = np.where(columns == search_dict["column"])[0]
+            if(len(index_array) > 0):
+                column_index = index_array[0]
+        else:
+            column_index = search_dict["column"]
+        return column_index
+
+    def _number_search(self, data, value, operator):
+        # 数字データの検索
+        index = []
+        if operator == "=":
+            index.extend(np.where(data == value)[0])
+        elif operator == ">":
+            index.extend(np.where(data >= value)[0])
+        if operator == "<":
+            index.extend(np.where(data <= value)[0])
+        return index
+
+    def _text_search(self, data, value, operator):
+        # テキストデータの検索
+        index = []
+        if operator == "=":
+            index.extend(np.where(data == value)[0])
+        elif operator == "like":
+            for i, d in enumerate(data):
+                if value in d:
+                    index.append(i)
+        return index
+
+    def _data_index_from_search_dict(self, search_number_data, search_number_data_columns, search_dicts, search_type):
+        # 検索したデータのインデックスを取得する
+        data_index = []
+        for search_dict in search_dicts:
+            index = []
+            if search_dict["data_type"] == "number":
+                # 数字データの検索
+                column_index = self._get_search_column_index(search_number_data_columns, search_dict, search_type)
+                if column_index is not None:
+                    index = self._number_search(search_number_data[:, column_index],
+                                                search_dict["value"], search_dict["operator"])
+            else:
+                # テキストデータの検索
+                column_index = self._get_search_column_index(self.text_data_columns, search_dict, search_type)
+                if column_index is not None:
+                    index = self._text_search(self.text_data[:, column_index],
+                                              search_dict["value"], search_dict["operator"])
+
+            if len(data_index) > 0:
+                # 検索結果のインデックスを結合する
+                # setにして重複をなくす
+                if len(index) > 0:
+                    s1 = set(data_index)
+                    s2 = set(index)
+                    # and検索なので、複数条件の時は両方を満たすものだけ返す
+                    data_index = list(s1.intersection(s2))
+            else:
+                data_index = index
+
+        return data_index
+
+    def _node_index_from_data_id(self, data_index):
+        # データのインデックスからそのデータを含むノードのインデックスを返す
+        node_index = []
+        values = self.hypercubes.values()
+        for i, val in enumerate(values):
+            s1 = set(val)
+            s2 = set(data_index)
+            if len(s1.intersection(s2)) > 0:
+                node_index.append(i)
+        return node_index
+
+    def _set_search_color(self, node_index):
+        # 検索結果の色をセットする
+        # 検索結果以外のノードをグレーにする
+        searched_color = ["#cccccc"] * len(self.hypercubes.keys())
+        for i in node_index:
+            searched_color[i] = self.hex_colors[i]
+        self.hex_colors = searched_color
+
+    def _concatenate_target(self, data, target):
+        # dataとtargetを結合する
+        # カラム名もあれば結合する
+        if target is not None:
+            number_data = np.concatenate([data, target.reshape(-1, 1)], axis=1)
+            if self.number_data_columns is not None:
+                number_data_columns = np.concatenate([self.number_data_columns, np.array(["target"])], axis=0)
+            else:
+                number_data_columns = None
+            return number_data, number_data_columns
+        else:
+            return data, self.number_data_columns
+
+    def _data_index_from_node_id(self, node_ids):
+        # ノードのインデックスからノードに含まれるデータのインデックスを取得する
+        data_index = []
+        for nid in node_ids:
+            data_index.extend(self.hypercubes[nid])
+        return list(set(data_index))
+
+    def load_data(self, number_data, text_data=None, text_data_columns=None,
+                  number_data_columns=None, standardize=False):
+        """Function of load data to this instance.
+
+        Params:
+            number_data: Data using calclate topology.
+
+            text_data: Text data correspond to number data.
+
+            text_data_columns: Column names of text data.
+
+            number_data_columns: Column names of number data.
+
+            standardize: standardize number data or not.
+        """
+        # number dataは必須
+        if number_data is None:
+            raise ValueError("Number data must not None.")
+
+        # number_dataをnumpy配列に直す
+        if number_data is not None and type(number_data) is not np.ndarray:
+            number_data = np.array(number_data)
+
+        # number_dataが二次元配列以外の時errorを発生させる
+        if number_data.ndim != 2:
+            raise ValueError("Number data must be 2d array.")
+
+        # text_dataをnumpy配列に直す
+        if text_data is not None and type(text_data) is not np.ndarray:
+            text_data = np.array(text_data)
+
+        # text_data_columnsがある時、text_dataは必須
+        if text_data_columns is not None and text_data is None:
+            raise ValueError("When you input text data columns, text data must be exist.")
+
+        if text_data_columns is not None and type(text_data_columns) is not np.ndarray:
+            text_data_columns = np.array(text_data_columns)
+
+        # text_data_columnsとtext_dataは列数が等しい必要がある
+        if text_data_columns is not None and text_data is not None:
+            if text_data.shape[1] != text_data_columns.shape[0]:
+                raise ValueError("Text data and text data columns must have same number of columns.")
+
+        if number_data_columns is not None and type(number_data_columns) is not np.ndarray:
+            number_data_columns = np.array(number_data_columns)
+
+        self.standardize = standardize
+
+        self.text_data = text_data
+        self.text_data_columns = text_data_columns
+
+        if standardize:
+            self.number_data = self._standardize(number_data)
+        else:
+            self.number_data = number_data
+        self.number_data_columns = number_data_columns
+
+    def fit_transform(self, metric=None, lens=None, scaler=preprocessing.MinMaxScaler()):
+        """Function of projection data to point cloud.
+
+        Params:
+            metric: Class of distance metric.
+
+            lens: List of clss of projection lens.
+
+            scaler: Class of scaling.
+        """
+        if self.number_data is None:
+            raise ValueError("Data must not None.")
+
+        self.metric = metric
+        self.lens = lens
+        self.scaler = scaler
+
+        self.point_cloud = None
+
+        d = self._create_dist_matrix(metric)
+        d = self._project_data(d, lens)
+        self.point_cloud = self._scale_data(d, scaler)
+
+    def map(self, resolution=10, overlap=1, eps=1, min_samples=1):
+        """Function of mapping point cloud to topological space.
+
+        Params:
+            resolution: The number of division of each axis.
+
+            overlap: The width of overlapping of division.
+
+            eps: The distance of clustering of data in each division.
+
+            min_samples: The least number of each cluster.
+        """
+        if self.point_cloud is None:
+            raise ValueError("Point cloud is not exist yet.")
+
+        if self.point_cloud.ndim != 2:
+            raise ValueError("Data must be 2d array.")
+
+        if resolution <= 0:
+            raise ValueError("Resolution must be greater than Zero.")
+
+        if overlap < 0:
+            raise ValueError("Overlap must be greater than Zero.")
+
+        if eps < 0:
+            raise ValueError("Eps must be greater than Zero.")
+
+        if min_samples < 0:
+            raise ValueError("Min samples must be greater than Zero.")
+
+        self.resolution = resolution
+        self.overlap = overlap
+        self.eps = eps
+        self.min_samples = min_samples
+
+        self.hypercubes = {}
+
+        dist_vec = self._calc_dist_vec(self.number_data)
+        dist_eps = self._calc_dist_from_eps(dist_vec, eps)
+
+        self._create_hypercubes(resolution, overlap, cluster.DBSCAN(eps=dist_eps, min_samples=min_samples))
+
+        if self.verbose == 1:
+            print("created %s nodes." % (len(self.hypercubes)))
+
+        # nodeが0個なら終了
+        if len(self.hypercubes) == 0:
+            return
+
+        self._calc_node_coordinate()
+        self._calc_edges()
+
         if self.verbose == 1:
             if self.edges is None:
                 print("created 0 edges.")
             else:
                 print("created %s edges." % (len(self.edges)))
 
-    def _get_hex_color(self, i):
-        """
-        rgbの色コードを返す関数。
-        """
-        # hsv色空間でiが0~1を青~赤に対応させる。
-        c = colorsys.hsv_to_rgb((1 - i) * 240 / 360, 1.0, 0.7)
-        return "#%02x%02x%02x" % (int(c[0] * 255), int(c[1] * 255), int(c[2] * 255))
-
-    def _get_grayscale_color(self, i):
-        """
-        グレースケールの色コードを返す関数。
-        """
-        i = 1 - i
-        return "#%02x%02x%02x" % (int((i + 0.1) * 200), int((i + 0.1) * 200), int((i + 0.1) * 200))
-
-    def _rescale_target(self, target):
-        ret_target = target
-
-        # 統計量を求める
-        q1 = scipy.stats.scoreatpercentile(target, 25)
-        median = np.median(target)
-        q3 = scipy.stats.scoreatpercentile(target, 75)
-
-        # スケーリングの設定
-        scaler_min_q1 = preprocessing.MinMaxScaler(feature_range=(0, 0.25))
-        scaler_q1_median = preprocessing.MinMaxScaler(feature_range=(0.25, 0.5))
-        scaler_median_q3 = preprocessing.MinMaxScaler(feature_range=(0.5, 0.75))
-        scaler_q3_max = preprocessing.MinMaxScaler(feature_range=(0.75, 1))
-
-        # indexを取得
-        index_min_q1 = np.where(target <= q1)[0]
-        index_q1_median = np.where(((target >= q1) & (target <= median)))[0]
-        index_median_q3 = np.where(((target >= median) & (target <= q3)))[0]
-        index_q3_max = np.where(target >= q3)[0]
-
-        # スケーリングを実行
-        target_min_q1 = scaler_min_q1.fit_transform(target[index_min_q1])
-        target_q1_median = scaler_q1_median.fit_transform(target[index_q1_median])
-        target_median_q3 = scaler_median_q3.fit_transform(target[index_median_q3])
-        target_q3_max = scaler_q3_max.fit_transform(target[index_q3_max])
-
-        # returnする色のarrayに代入する
-        ret_target[index_min_q1] = target_min_q1
-        ret_target[index_q1_median] = target_q1_median
-        ret_target[index_median_q3] = target_median_q3
-        ret_target[index_q3_max] = target_q3_max
-        return np.array(ret_target)
-
-    def color(self, target, dtype="numerical", ctype="rgb", feature_range=(0, 1), normalized=False):
-        """Function of coloring topology.
+    def color(self, target, color_method="mean", color_type="rgb", normalize=False):
+        """Function of coloring topology with target.
 
         Params:
-            target: Array of coloring data.
+            target: The array of coloring values.
 
-            dtype: The type of data. If dtype is "numerical", node is colored by mean value.
-                   If dtype is "categorical", node is colored by mode value.
+            color_method: The method of calculating color value. "mean" or "mode".
 
-            ctype: The type of node color. RGB or Grayscale.
+            color_type: "rgb" or "gray".
 
-            feature_range: The range of color gradation.
-
-            normalized: Target value is normalized or not. If target is aleady normalized, this variable is True.
+            normalize: Normalize target data or not.
         """
         if target is None:
             raise Exception("Target must not None.")
@@ -338,248 +569,324 @@ class Topology(object):
         if type(target) is not np.ndarray:
             target = np.array(target)
 
-        if len(target) != self.input_data.shape[0]:
+        if len(target) != self.number_data.shape[0]:
             raise ValueError("Target data size must be same with input data")
 
-        if dtype not in ["numerical", "categorical"]:
-            raise ValueError("Data type must be 'numerical' or 'categorical'.")
+        if color_method not in ["mean", "mode"]:
+            raise ValueError("Data type must be 'mean' or 'mode'.")
 
-        if ctype not in ["rgb", "gray"]:
+        if color_type not in ["rgb", "gray"]:
             raise ValueError("Color type must be 'rgb' or 'gray'.")
 
         if len(target.shape) == 1:
             target = target.reshape(-1, 1)
 
-        self.colors = [""] * len(self.hypercubes)
+        self.color_target = target
+
+        self.hex_colors = [""] * len(self.hypercubes)
 
         # targetを0~1に正規化する
-        target = target.astype(np.float)
-        if normalized:
-            scaled_target = target
+        if normalize:
+            scaled_target = self._normalize(target)
         else:
-            scaler = preprocessing.MinMaxScaler()
-            scaled_target = scaler.fit_transform(target)
+            scaled_target = target
 
-        color_num_list = np.zeros((len(self.hypercubes), 1))
-        for key in self.hypercubes.keys():
-            target_in_node = scaled_target[self.hypercubes[key]]
-            if dtype == "categorical":
-                # カテゴリデータは最頻値
-                color_num_list[int(key)] = scipy.stats.mode(target_in_node)[0][0]
-            elif dtype == "numerical":
-                # 数値データは平均
-                color_num_list[int(key)] = np.average(target_in_node)
+        colors = self._calc_color_values(scaled_target, color_method)
+        self.colors = self._rescale_colors(colors)
+        self._calc_hex_color_values(color_type)
 
-        color_num_list = self._rescale_target(color_num_list)
-        for key in self.hypercubes.keys():
-            if ctype == "rgb":
-                hex_color = self._get_hex_color(color_num_list[int(key)])
-            elif ctype == "gray":
-                hex_color = self._get_grayscale_color(color_num_list[int(key)])
-
-            self.colors[int(key)] = hex_color
-
-    def show(self, fig_size=(5, 5), node_size=10, edge_width=2, mode=None, strength=None):
-        """Function of visualize topology.
+    def show(self, fig_size=(5, 5), node_size=5, edge_width=1, mode=None, strength=None):
+        """Function of show topology.
 
         Params:
-            fig_size: The size of output image.
+            fig_size: The size of showing figure.
 
-            node_size: The size of nodes.
+            node_size: The size of node.
 
-            edge_width: The width of edges.
+            edge_width: The width of edge.
 
-            mode: Visualization mode. None or "spring".
-                  If this is "spring", node coordination is calculated by spring model.
+            mode: Layout mode. "spring" or None.
 
-            strength: The strength of spring in spring model.
+            strength: The strength of repulsive force between nodes in "spring" mode.
         """
-
-        # node_sizeを計算する。最大の大きさを決める。
-        max_node_size = fig_size[0]
-        self.node_sizes[self.node_sizes > max_node_size] = max_node_size
-        draw_node_sizes = self.node_sizes * fig_size[0] * 2
-
         if mode == "spring":
-            # グラフの初期位置を設定する。
-            init_position = {}
-
-            # ノードの座標が1次元の時はPCAで2次元に落とした座標をクラスタの初期位置とする。
-            if self.nodes.shape[1] == 1:
-                m = decomposition.PCA(n_components=2)
-                s = preprocessing.MinMaxScaler()
-                d = m.fit_transform(self.input_data)
-                d = s.fit_transform(d)
-                for k in self.hypercubes.keys():
-                    data_in_node = d[self.hypercubes[k]]
-                    init_position.update({int(k): np.average(data_in_node, axis=0)})
-            elif self.nodes.shape[1] == 2 or self.nodes.shape[1] == 3:
-                # 2次元,3次元の時はノードの座標値上位２つを初期値にする。
-                for k in self.hypercubes.keys():
-                    init_position.update({int(k): self.nodes[int(k), :2]})
-
-            # ネットワークグラフで描画する。
-            fig = plt.figure(figsize=fig_size)
-            graph = nx.Graph(pos=init_position)
-            graph.add_nodes_from(range(len(self.nodes)))
-            graph.add_edges_from(self.edges)
-            init_position = nx.spring_layout(graph, pos=init_position, k=strength)
-            nx.draw_networkx(graph, pos=init_position,
-                             node_size=draw_node_sizes, node_color=self.colors,
-                             width=edge_width,
-                             edge_color=[self.colors[e[0]] for e in self.edges],
-                             with_labels=False)
+            self._spring_plot(fig_size, node_size, edge_width, strength)
         else:
-            fig = plt.figure(figsize=fig_size)
-            ax = fig.add_subplot(111)
-            for e in self.edges:
-                ax.plot([self.nodes[e[0], 0], self.nodes[e[1], 0]],
-                        [self.nodes[e[0], 1], self.nodes[e[1], 1]],
-                        c=self.colors[e[0]])
-            ax.scatter(self.nodes[:, 0], self.nodes[:, 1], c=self.colors, s=draw_node_sizes)
-        plt.axis("off")
+            self._plot(fig_size, node_size, edge_width)
         plt.show()
 
+    def save(self, filename, fig_size=(5, 5), node_size=5, edge_width=1, mode=None, strength=None):
+        """Function of save topology.
 
-class SearchableTopology(Topology):
-    """SearchableTopology Class
+        Params:
+            filename: The name of output image.
 
-    Example:
-        >>> from sklearn.datasets import load_iris
-        >>> from sklearn.cluster import DBSCAN
-        >>> from renom.tda.topology import SearchableTopology
-        >>> from renom.tda.metric import Distance
-        >>> from renom.tda.lens import PCA
-        >>> data, target = load_iris().data, load_iris().target
-        >>> topology = SearchableTopology()
-        >>> metric = Distance(metric="euclidean")
-        >>> lens = [PCA(components=[0,1])]
-        >>> topology.fit_transform(data, metric=metric, lens=lens)
-        calculated distance matrix by Distance class using euclidean distance.
-        projected by PCA.
-        finish fit_transform.
-        >>> clusterer = DBSCAN(eps=1, min_samples=3)
-        >>> topology.map(resolution=10, overlap=0.5, clusterer=clusterer)
-        mapping start, please wait...
-        created 28 nodes.
-        calculating cluster coordination.
-        calculating edge.
-        created 49 edges.
-        >>> label_setosa = ["setosa"]*50
-        >>> label_versicolor = ["versicolor"]*50
-        >>> label_virginica = ["virginica"]*50
-        >>> labels = label_setosa + label_versicolor + label_virginica
-        >>> len(labels)
-        150
-        >>> topology.regist_categorical_data(labels)
-        >>> topology.categorical_data.shape
-        (150, 1)
-        >>> topology.color(target, dtype="categorical", ctype="rgb")
-        >>> topology.search("setosa")
-        setosa is in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                      11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-                      21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-                      31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-                      41, 42, 43, 44, 45, 46, 47, 48, 49] data.
-        setosa is in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] node.
-        >>> topology.show(fig_size=(5,5), node_size=5, edge_width=1)
+            fig_size: The size of showing figure.
+
+            node_size: The size of node.
+
+            edge_width: The width of edge.
+
+            mode: Layout mode. "spring" or None.
+
+            strength: The strength of repulsive force between nodes in "spring" mode.
+        """
+        if mode == "spring":
+            self._spring_plot(fig_size, node_size, edge_width, strength)
+        else:
+            self._plot(fig_size, node_size, edge_width)
+        plt.savefig(filename)
+
+    def search_from_id(self, node_id):
+        """Function of search node from id.
+
+        Params:
+            node_id: ID of node.
+
+        Return:
+            Summary of searched node data.
+        """
+        data_ids = self.hypercubes[node_id]
+
+        text_data = None
+        if self.text_data is not None:
+            text_data = self.text_data[data_ids]
+
+        number_data = None
+        if self.number_data is not None:
+            number_data = self._re_standardize(self.number_data[data_ids])
+
+        text_data_columns = None
+        if self.text_data_columns is not None:
+            text_data_columns = self.text_data_columns
+
+        number_data_columns = None
+        if self.number_data_columns is not None:
+            number_data_columns = self.number_data_columns
+
+        result = {
+            "id": node_id,
+            "coordinate": self.nodes[node_id],
+            "data_ids": data_ids,
+            "text_data": text_data,
+            "text_data_columns": text_data_columns,
+            "number_data": number_data,
+            "number_data_columns": number_data_columns,
+        }
+
+        if self.verbose == 1:
+            print("node id: {}".format(node_id))
+            print("coordinate: {}".format(result["coordinate"]))
+            print("data ids: {}".format(result["data_ids"]))
+            print("text data columns:")
+            print(result["text_data_columns"])
+            print("text data:")
+            print(result["text_data"])
+            print("number data columns:")
+            print(result["number_data_columns"])
+            print("number data:")
+            print(result["number_data"])
+        return result
+
+    def search_from_values(self, search_dicts=None, target=None, search_type="index"):
+        """Function of search node with values.
+
+        Params:
+            search_dicts: The array of search options.
+
+            target: The array of values that is not input but wan't to search.
+
+            search_type: How to get column index in search_dicts. "column" or "index".
+        """
+        if search_type not in ["column", "index"]:
+            raise ValueError("Data type must be 'column' or 'index'.")
+
+        if search_type == "column":
+            if self.text_data.shape[0] > 0 and self.text_data_columns is None:
+                raise ValueError("When search type is column, text_data_columns must not None.")
+
+            if self.number_data_columns is None:
+                raise ValueError("When search type is column, number_data_columns must not None.")
+
+        number_data = self._re_standardize(self.number_data)
+        search_number_data, search_number_data_columns = self._concatenate_target(number_data, target)
+
+        data_index = self._data_index_from_search_dict(search_number_data, search_number_data_columns,
+                                                       search_dicts, search_type)
+        node_index = self._node_index_from_data_id(data_index)
+        self._set_search_color(node_index)
+
+        return node_index
+
+    def output_csv_from_node_ids(self, filename, node_ids=[], target=None, skip_header=False):
+        """Function of output csv file with node ids.
+
+        Params:
+            filename: The name of output csv file.
+
+            node_ids: The array of node ids in output data.
+
+            target: The array of values that is not input but use.
+
+            skip_header: Skip header or not. If you set False, text_column_names and number_column_names must not None.
+        """
+        if len(node_ids) > 0:
+            number_data = self._re_standardize(self.number_data)
+            number_data, number_data_columns = self._concatenate_target(number_data, target)
+
+            data_index = self._data_index_from_node_id(node_ids)
+            if self.text_data is not None:
+                extract_data = np.concatenate([self.text_data[data_index], number_data[data_index]], axis=1)
+            else:
+                extract_data = number_data[data_index]
+
+            extract_data = pd.DataFrame(extract_data)
+
+        if skip_header:
+            extract_data.to_csv(filename, columns=None, index=None)
+        else:
+            columns = np.concatenate([self.text_data_columns, number_data_columns])
+            extract_data.columns = columns
+            extract_data.to_csv(filename, columns=extract_data.columns, index=None)
+
+
+class Topology(TopologyCore):
+    """Class of TDA & point cloud function.
+
+    Params:
+        verbose: Show progress of calculation or not. 0(don't show) or 1(show).
     """
 
     def __init__(self, verbose=1):
-        super(SearchableTopology, self).__init__(verbose)
-        self.categorical_data = None
+        super(Topology, self).__init__(verbose)
+        self.point_cloud_hex_colors = None
+        self.point_cloud_sizes = None
 
-    def regist_categorical_data(self, data):
-        """Function of regist categorical data for search.
+    def _calc_point_cloud_hex_color(self, target, color_type):
+        # point cloudの色
+        for i, t in enumerate(target):
+            if color_type == "rgb":
+                hex_color = self._hex_color(t)
+            elif color_type == "gray":
+                hex_color = self._grayscale_color(t)
 
-        Params:
-            data: Categorical data.
-        """
-        if type(data) is not np.ndarray:
-            data = np.array(data)
+            self.point_cloud_hex_colors[i] = hex_color
 
-        if len(data.shape) == 1:
-            data = data.reshape(-1, 1)
+    def _get_train_test_index(self, length, size=0.9):
+        # 学習データとテストデータに分ける
+        threshold = int(length * size)
+        index = np.random.permutation(length)
+        train_index = np.sort(index[:threshold])
+        test_index = np.sort(index[threshold:])
+        return train_index, test_index
 
-        self.categorical_data = data
+    def _set_search_point_cloud_color(self, data_index):
+        # 検索結果以外の色をグレーにする
+        searched_color = ["#cccccc"] * len(self.point_cloud)
+        for i in data_index:
+            searched_color[i] = self.point_cloud_hex_colors[i]
+        self.point_cloud_hex_colors = searched_color
 
-    def search(self, value):
-        """Function of searching categorical data.
-
-        Params:
-            value: Search value.
-        """
-        # 全ての色をグレーにする
-        searched_color = ["#cccccc"] * len(self.hypercubes.keys())
-        index = []
-        for i in range(self.categorical_data.shape[0]):
-            for j in range(self.categorical_data.shape[1]):
-                if value in self.categorical_data[i, j]:
-                    index.append(i)
-
-        if self.verbose == 1:
-            print("%s is in %s data." % (value, index))
-        values = self.hypercubes.values()
-
-        node_index = []
-        for i, val in enumerate(values):
-            s1 = set(val)
-            s2 = set(index)
-            if len(s1.intersection(s2)) > 0:
-                node_index.append(i)
-        if self.verbose == 1:
-            print("%s is in %s node." % (value, node_index))
-
-        for i in node_index:
-            searched_color[i] = self.colors[i]
-        self.colors = searched_color
-
-    def advanced_search(self, search_dict, target):
-        searched_color = ["#cccccc"] * len(self.hypercubes.keys())
-        index = []
-
-        for key in search_dict.keys():
-            # 数値データの検索
-            if search_dict[key]["data_type"] == 0:
-                if search_dict[key]["index"] < self.input_data.shape[1]:
-                    search_data = self.input_data[:, search_dict[key]["index"]]
-                else:
-                    search_data = (target - target.mean()) / (target.std() + 1e-6)
-                if search_dict[key]["operator"] == "=":
-                    index.extend(np.where(search_data == search_dict[key]["value"])[0])
-                elif search_dict[key]["operator"] == ">":
-                    index.extend(np.where(search_data > search_dict[key]["value"])[0])
-                elif search_dict[key]["operator"] == "<":
-                    index.extend(np.where(search_data < search_dict[key]["value"])[0])
-            # 文字列データの検索
-            elif search_dict[key]["data_type"] == 1:
-                search_data = self.categorical_data[:, search_dict[key]["index"]]
-                if search_dict[key]["operator"] == "=":
-                    index.extend(np.where(search_data == search_dict[key]["value"])[0])
-                elif search_dict[key]["operator"] == "like":
-                    for i in range(search_data.shape[0]):
-                        if search_dict[key]["value"] in search_data[i]:
-                            index.append(i)
-
-        values = self.hypercubes.values()
-        node_index = []
-        for i, val in enumerate(values):
-            s1 = set(val)
-            s2 = set(index)
-            if len(s1.intersection(s2)) > 0:
-                node_index.append(i)
-
-        for i in node_index:
-            searched_color[i] = self.colors[i]
-        self.colors = searched_color
-
-    def get_hypercube(self, key):
-        """Function of getting value of hypercubes.
-
-        Return:
-           Categorical data and data in key hypercube.
+    def color_point_cloud(self, target, color_type="rgb", normalize=False):
+        """Function of coloring point cloud with target.
 
         Params:
-            key: The ID of hypercube.
+            target: The array of coloring values.
+
+            color_type: "rgb" or "gray".
+
+            normalize: Normalize target data or not.
         """
-        return self.categorical_data[self.hypercubes[int(key)]], self.input_data[self.hypercubes[int(key)]]
+        if target is None:
+            raise Exception("Target must not None.")
+
+        if type(target) is not np.ndarray:
+            target = np.array(target)
+
+        if len(target) != self.point_cloud.shape[0]:
+            raise ValueError("Target data size must be same with point cloud data")
+
+        if color_type not in ["rgb", "gray"]:
+            raise ValueError("Color type must be 'rgb' or 'gray'.")
+
+        if len(target.shape) == 1:
+            target = target.reshape(-1, 1)
+
+        self.point_cloud_hex_colors = [""] * len(self.point_cloud)
+
+        # targetを0~1に正規化する
+        if normalize:
+            scaled_target = self._normalize(target)
+        else:
+            scaled_target = target
+
+        scaled_target = self._rescale_colors(scaled_target)
+        self._calc_point_cloud_hex_color(scaled_target, color_type)
+
+    def supervised_clustering_point_cloud(self, clusterer=None, target=None, train_size=0.9):
+        """Function of supervised clustering of point cloud.
+
+        Params:
+            clusterer: Class of clustering.
+
+            target: target data.
+
+            train_size: The size of Training data.
+        """
+        if clusterer is not None and "fit" in dir(clusterer) and target is not None:
+            # 教師データとテストデータに分ける
+            self.train_index, test_index = self._get_train_test_index(self.point_cloud.shape[0], train_size)
+            x_train = self.point_cloud[self.train_index, :]
+            x_test = self.point_cloud[test_index, :]
+            y_train = target[self.train_index].astype(int)
+
+            # 目的変数がラベルデータ(int)なら分類&predictする
+            clusterer.fit(x_train, y_train)
+            labels = np.zeros((self.point_cloud.shape[0], 1))
+            labels[self.train_index] += y_train.reshape(-1, 1)
+            labels[test_index] += clusterer.predict(x_test).reshape(-1, 1)
+            labels = self._normalize(labels)
+            self.point_cloud_hex_colors = [self._hex_color(i) for i in labels]
+
+    def unsupervised_clustering_point_cloud(self, clusterer=None):
+        """Function of unsupervised clustering of point cloud.
+
+        Params:
+            clusterer: Class of clustering.
+        """
+        if clusterer is not None and "fit" in dir(clusterer):
+            clusterer.fit(self.point_cloud)
+            labels = self._normalize(clusterer.labels_.reshape(-1, 1))
+            self.point_cloud_hex_colors = [self._hex_color(i) if i >= 0 else "#000000" for i in labels]
+
+    def show_point_cloud(self, fig_size=(5, 5), node_size=5):
+        """Function of showing point cloud.
+
+        Params:
+            fig_size: The size of showing figure.
+
+            node_size: The size of node.
+        """
+        fig = plt.figure(figsize=fig_size)
+        ax = fig.add_subplot(111)
+        ax.scatter(self.point_cloud[:, 0], self.point_cloud[:, 1], c=self.point_cloud_hex_colors, s=node_size)
+        plt.axis("off")
+        plt.show()
+
+    def search_point_cloud(self, search_dicts=None, target=None, search_type="index"):
+        """Function of search point cloud with values.
+
+        Params:
+            search_dicts: The array of search options.
+
+            target: The array of values that is not input but wan't to search.
+
+            search_type: How to get column index in search_dicts. "column" or "index".
+        """
+        search_number_data = self._re_standardize(self.number_data)
+        search_number_data, search_number_data_columns = self._concatenate_target(search_number_data, target)
+
+        data_index = self._data_index_from_search_dict(search_number_data, search_number_data_columns,
+                                                       search_dicts, search_type)
+        self._set_search_point_cloud_color(data_index)
+        return data_index
