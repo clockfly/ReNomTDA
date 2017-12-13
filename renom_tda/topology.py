@@ -835,16 +835,16 @@ class Topology(TopologyCore):
         """
         if clusterer is not None and "fit" in dir(clusterer) and target is not None:
             # 教師データとテストデータに分ける
-            self.train_index, test_index = self._get_train_test_index(self.point_cloud.shape[0], train_size)
+            self.train_index, self.test_index = self._get_train_test_index(self.point_cloud.shape[0], train_size)
             x_train = self.point_cloud[self.train_index, :]
-            x_test = self.point_cloud[test_index, :]
+            x_test = self.point_cloud[self.test_index, :]
             y_train = target[self.train_index].astype(int)
 
             # 目的変数がラベルデータ(int)なら分類&predictする
             clusterer.fit(x_train, y_train)
             labels = np.zeros((self.point_cloud.shape[0], 1))
             labels[self.train_index] += y_train.reshape(-1, 1)
-            labels[test_index] += clusterer.predict(x_test).reshape(-1, 1)
+            labels[self.test_index] += clusterer.predict(x_test).reshape(-1, 1)
             labels = self._normalize(labels)
             self.point_cloud_hex_colors = [self._hex_color(i) for i in labels]
 
