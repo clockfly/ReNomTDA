@@ -3,7 +3,7 @@ from numpy.testing import assert_array_equal
 
 import pytest
 
-from renom_tda.lens import L1Centrality, LinfCentrality, GaussianDensity, PCA, TSNE
+from renom_tda.lens import L1Centrality, LinfCentrality, GaussianDensity, PCA, TSNE, MDS, Isomap
 
 
 def test_l1():
@@ -34,31 +34,6 @@ def test_gd():
     lens = GaussianDensity(h=0.5)
     projected_data = lens.fit_transform(dist_matrix)
     test_data = np.array([np.exp(0) + np.exp(-1), np.exp(-1) + np.exp(0)])
-    test_data = test_data.reshape(test_data.shape[0], 1)
-
-    assert_array_equal(projected_data, test_data)
-
-
-def test_pca():
-    dist_matrix = np.array([[0., 1.], [1., 0.]])
-
-    lens = PCA(components=[0])
-    projected_data = lens.fit_transform(dist_matrix)
-    projected_data = projected_data / (np.abs(projected_data))
-    test_data = np.array([-1., 1.])
-    test_data = test_data.reshape(test_data.shape[0], 1)
-
-    assert_array_equal(projected_data, test_data)
-
-
-def test_tsne():
-    dist_matrix = np.array([[0., 1.], [1., 0.]])
-
-    lens = TSNE(components=[0])
-    projected_data = lens.fit_transform(dist_matrix)
-    print(projected_data)
-    projected_data = projected_data / (np.abs(projected_data))
-    test_data = np.array([-1., 1.])
     test_data = test_data.reshape(test_data.shape[0], 1)
 
     assert_array_equal(projected_data, test_data)
@@ -115,3 +90,27 @@ def test_tsne_none_input():
 def test_tsne_none_components():
     with pytest.raises(Exception):
         TSNE(components=None)
+
+
+def test_mds_none_input():
+    dist_matrix = None
+    lens = MDS(components=[0])
+    with pytest.raises(Exception):
+        lens.fit_transform(dist_matrix)
+
+
+def test_mds_none_components():
+    with pytest.raises(Exception):
+        MDS(components=None)
+
+
+def test_isomap_none_input():
+    dist_matrix = None
+    lens = Isomap(components=[0])
+    with pytest.raises(Exception):
+        lens.fit_transform(dist_matrix)
+
+
+def test_isomap_none_components():
+    with pytest.raises(Exception):
+        Isomap(components=None)
