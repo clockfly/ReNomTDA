@@ -22,6 +22,8 @@ export default {
     if (this.$store.state.topology.filename === "") {
       this.$router.push({ path: '/' });
     }
+
+    this.$store.dispatch("set_random");
   }
 }
 </script>

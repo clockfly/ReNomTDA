@@ -137,11 +137,14 @@ export default {
       }
     },
     go_topology: function() {
+      localStorage.setItem("rand_str", undefined);
+
       if(this.create_topology_index.length > 1 && this.colorize_topology_index.length > 0) {
         this.$store.commit('set_selected_index', {
           'create_topology_index': this.create_topology_index,
           'colorize_topology_index': this.colorize_topology_index
         });
+
         this.$router.push({ path: '/topology' });
       }else{
         alert("Please select calculate columns & colorize columns.")

@@ -125,17 +125,22 @@ def set_json_body(body):
 
 @route("/")
 def index():
-    rand_str = request.get_cookie("rand_str")
-    if rand_str is None:
+    return pkg_resources.resource_string(__name__, "index.html")
+
+
+@route("/api/set_random", method="POST")
+def set_random():
+    rand_str = request.params.rand_str
+    if rand_str == "":
         cookie_str = ''.join([random.choice(string.ascii_letters + string.digits) for i in range(20)])
-        response.set_cookie(
-            "rand_str",
-            cookie_str,
-            max_age=315360000)
 
         storage.regist_topology_data(cookie_str, 0)
         storage.regist_topology_data(cookie_str, 1)
-    return pkg_resources.resource_string(__name__, "index.html")
+
+        body = json.dumps({"rand_str": cookie_str})
+        r = set_json_body(body)
+        return r
+    return
 
 
 @route("/api/reset")
@@ -218,7 +223,8 @@ def load_file():
 # ノードをクリックした時に呼び出す関数
 @route("/api/click", method="POST")
 def click():
-    rand_str = request.get_cookie("rand_str")
+    # rand_str = request.get_cookie("rand_str")
+    rand_str = request.params.rand_str
 
     filename = request.params.filename
     filepath = os.path.join(DATA_DIR, filename)
@@ -467,7 +473,8 @@ def _set_histogram_data(color_data, canvas_params):
 # トポロジを作成する関数
 @route("/api/create", method="POST")
 def create():
-    rand_str = request.get_cookie("rand_str")
+    # rand_str = request.get_cookie("rand_str")
+    rand_str = request.params.rand_str
 
     # パラメータ取得
     filename = request.params.filename
@@ -602,7 +609,9 @@ def _search(search_params, canvas_params, db_data, color_data, categorical_data)
 
 @route("/api/search", method="POST")
 def search():
-    rand_str = request.get_cookie("rand_str")
+    # rand_str = request.get_cookie("rand_str")
+    rand_str = request.params.rand_str
+
     # パラメータ取得
     filename = request.params.filename
     filepath = os.path.join(DATA_DIR, filename)

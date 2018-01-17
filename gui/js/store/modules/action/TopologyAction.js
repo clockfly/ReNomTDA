@@ -47,6 +47,7 @@ let TopologyAction = {
     context.commit('reset_topology');
 
     let fd = new FormData();
+    fd.append("rand_str", localStorage.getItem("rand_str"));
     fd.append("filename", context.state.filename);
     fd.append("create_topology_index", context.state.create_topology_index.toString());
     fd.append("colorize_topology_index", context.state.colorize_topology_index.toString());
@@ -111,6 +112,7 @@ let TopologyAction = {
     context.commit('reset_colors');
 
     let fd = new FormData();
+    fd.append("rand_str", localStorage.getItem("rand_str"));
     fd.append("filename", context.state.filename);
     fd.append("create_topology_index", context.state.create_topology_index.toString());
     fd.append("colorize_topology_index", context.state.colorize_topology_index.toString());
@@ -136,6 +138,7 @@ let TopologyAction = {
 
   click_node(context, payload) {
     let fd = new FormData();
+    fd.append("rand_str", localStorage.getItem("rand_str"));
     fd.append("filename", context.state.filename);
     fd.append("clicknode", payload.click_node_index);
     fd.append("columns", payload.columns);
@@ -172,6 +175,15 @@ let TopologyAction = {
       .then(function(response){
         context.commit('set_loading');
       });
+  },
+  set_random(context) {
+    let fd = new FormData();
+    fd.append("rand_str", localStorage.getItem("rand_str"));
+
+    return axios.post('/api/set_random')
+      .then(function(response) {
+        localStorage.setItem("rand_str", response.data.rand_str);
+      })
   }
 }
 
