@@ -178,6 +178,7 @@ def _get_data_and_index(filepath):
 @route("/api/load_file", method="POST")
 def load_file():
     filename = request.params.filename
+    filename = filename.split("/")[0]
     filepath = os.path.join(DATA_DIR, filename)
 
     try:
@@ -227,6 +228,7 @@ def click():
     rand_str = request.params.rand_str
 
     filename = request.params.filename
+    filename = filename.split("/")[0]
     filepath = os.path.join(DATA_DIR, filename)
     node_index = int(request.params.clicknode)
     columns = int(request.params.columns)
@@ -478,6 +480,7 @@ def create():
 
     # パラメータ取得
     filename = request.params.filename
+    filename = filename.split("/")[0]
     filepath = os.path.join(DATA_DIR, filename)
     # トポロジーを計算する項目と色をつける項目のインデックスのリストを受け取る
     create_topology_index = list(map(int, request.params.create_topology_index.split(",")))
@@ -614,6 +617,7 @@ def search():
 
     # パラメータ取得
     filename = request.params.filename
+    filename = filename.split("/")[0]
     filepath = os.path.join(DATA_DIR, filename)
     colorize_topology_index = list(map(int, request.params.colorize_topology_index.split(",")))
 

@@ -19,7 +19,7 @@ export default {
 <style lang="scss">
 /* loading animation */
 .loading {
-  position: absolute;
+  position: fixed;
   top: 0;
   height: 100%;
   width: 100%;
