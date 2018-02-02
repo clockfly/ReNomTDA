@@ -3,19 +3,24 @@ import axios from 'axios'
 // TODO
 // actionのメソッドがreturnしないように変更する.
 let TopologyAction = {
+  load_file_list(context, payload) {
+    context.commit('set_loading');
+    return axios.get('/api/load_file_list')
+      .then(function(response){
+        context.commit("set_file_list", {
+          "files": response.data.files,
+        });
+        context.commit('set_loading');
+      });
+  },
+
   load_file(context, payload) {
     context.commit('set_loading');
     context.commit('reset_data_histogram');
 
-    if(!payload.filename) {
-      alert("please input file name.")
-      context.commit('set_loading');
-      return
-    }
-
     let fd = new FormData();
-    fd.append("filename", payload.filename);
-    
+    fd.append("file_id", payload.file_id);
+
     return axios.post('/api/load_file', fd)
       .then(function(response){
         let error = response.data.error;
@@ -30,7 +35,7 @@ let TopologyAction = {
         }
 
         context.commit('set_load_file_result', {
-          'filename': payload.filename,
+          'file_id': payload.file_id,
           'categorical_data_labels': response.data.categorical_data_labels,
           'numerical_data_labels': response.data.numerical_data_labels,
           'numerical_data': response.data.numerical_data,
@@ -48,7 +53,7 @@ let TopologyAction = {
 
     let fd = new FormData();
     fd.append("rand_str", localStorage.getItem("rand_str"));
-    fd.append("filename", context.state.filename);
+    fd.append("file_id", context.state.file_id);
     fd.append("create_topology_index", context.state.create_topology_index.toString());
     fd.append("colorize_topology_index", context.state.colorize_topology_index.toString());
 
@@ -113,7 +118,7 @@ let TopologyAction = {
 
     let fd = new FormData();
     fd.append("rand_str", localStorage.getItem("rand_str"));
-    fd.append("filename", context.state.filename);
+    fd.append("file_id", context.state.file_id);
     fd.append("create_topology_index", context.state.create_topology_index.toString());
     fd.append("colorize_topology_index", context.state.colorize_topology_index.toString());
 
@@ -139,7 +144,7 @@ let TopologyAction = {
   click_node(context, payload) {
     let fd = new FormData();
     fd.append("rand_str", localStorage.getItem("rand_str"));
-    fd.append("filename", context.state.filename);
+    fd.append("file_id", context.state.file_id);
     fd.append("clicknode", payload.click_node_index);
     fd.append("columns", payload.columns);
     if (payload.columns == 0){

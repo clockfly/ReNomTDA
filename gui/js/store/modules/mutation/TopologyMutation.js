@@ -41,7 +41,7 @@ let TopologyMutation = {
     state.edges_col2 = undefined;
     state.colors_col2 = undefined;
     state.sizes_col2 = undefined;
-    
+
     state.click_node_index = undefined;
     state.node_categorical_data = undefined;
     state.node_data = undefined;
@@ -78,12 +78,15 @@ let TopologyMutation = {
   },
 
   // data selection page
+  set_file_list(state, payload) {
+    state.files = payload.files;
+  },
   set_selected_index(state, payload) {
     state.create_topology_index = payload.create_topology_index;
     state.colorize_topology_index = payload.colorize_topology_index;
   },
   set_load_file_result(state, payload) {
-    state.filename = payload.filename;
+    state.file_id = payload.file_id;
     state.categorical_data_labels = payload.categorical_data_labels;
     state.numerical_data_labels = payload.numerical_data_labels;
     state.numerical_data = payload.numerical_data;
