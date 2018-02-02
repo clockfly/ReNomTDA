@@ -35,7 +35,6 @@ let TopologyAction = {
         }
 
         context.commit('set_load_file_result', {
-          'file_id': payload.file_id,
           'categorical_data_labels': response.data.categorical_data_labels,
           'numerical_data_labels': response.data.numerical_data_labels,
           'numerical_data': response.data.numerical_data,
