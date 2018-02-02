@@ -78,6 +78,9 @@ let TopologyMutation = {
   },
 
   // data selection page
+  set_file_id(state, payload) {
+    state.file_id = payload.file_id;
+  },
   set_file_list(state, payload) {
     state.files = payload.files;
   },
@@ -86,7 +89,6 @@ let TopologyMutation = {
     state.colorize_topology_index = payload.colorize_topology_index;
   },
   set_load_file_result(state, payload) {
-    state.file_id = payload.file_id;
     state.categorical_data_labels = payload.categorical_data_labels;
     state.numerical_data_labels = payload.numerical_data_labels;
     state.numerical_data = payload.numerical_data;

@@ -13,12 +13,17 @@
 <script>
 export default {
   name: "TopologyFileLoader",
-  data: function() {
-    return {
-      file_id: 0,
-    }
-  },
   computed: {
+    file_id: {
+      get: function() {
+        return this.$store.state.topology.file_id;
+      },
+      set: function(val) {
+        this.$store.commit("set_file_id", {
+          "file_id": val,
+        });
+      },
+    },
     files() {
       return this.$store.state.topology.files;
     }
