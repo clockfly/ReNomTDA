@@ -32,19 +32,6 @@ Then move to the ReNomTDA folder, install the module using pip.
 	cd ReNomTDA
 	pip install -e .
 
-To activate CUDA, you have to build cuda modules before `pip install -e .` 
-using following command.
-
-    python setup.py build_ext -if
-
-Please be sure that the environment variable CUDA_HOME is set correctly.
-
-Example:
-
-	$ echo $CUDA_HOME
-	/usr/local/cuda-8.0
-	
-
 ## Precision
 
 If you set an environment variable RENOM_PRECISION=64, 
