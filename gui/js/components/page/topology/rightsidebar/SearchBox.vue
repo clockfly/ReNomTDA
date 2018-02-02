@@ -1,7 +1,10 @@
 <template>
   <div id="search_box">
     <div class="input-group vertical">
-      <button class="change_search_data_type" v-on:click="is_categorical = !is_categorical">Search Data Type</button>
+      <button class="change_search_data_type" v-on:click="change_search_data_type">Change Search Data Type</button>
+
+      <div v-if="!is_categorical">Type: Number</div>
+      <div v-if="is_categorical">Type: Text</div>
 
       <div v-if="is_categorical">
         <select v-model="search_column_index">
@@ -53,6 +56,14 @@ export default {
   },
   methods: {
     search: function() {
+      // check input value
+      if(!this.is_categorical && !isFinite(this.search_value)){
+        console.log(this.search_value);
+        console.log(isFinite(this.search_value));
+        alert("If you search number data, you can only input number data");
+        return;
+      }
+
       // 検索文字をbase64に変換
       let text_encoder = new TextEncoder();
       const search_txt = text_encoder.encode(this.search_value);
@@ -68,8 +79,14 @@ export default {
       if (this.search_value == "") {
         this.search();
       }
+    },
+    change_search_data_type: function() {
+      this.is_categorical = !this.is_categorical;
+      this.search_column_index = 0;
+      this.operator_index = 0;
+      this.search_value = "";
     }
-}
+  }
 }
 </script>
 

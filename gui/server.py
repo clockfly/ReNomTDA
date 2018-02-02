@@ -631,7 +631,6 @@ def _search(search_params, canvas_params, db_data, color_data, categorical_data)
 
 @route("/api/search", method="POST")
 def search():
-    # rand_str = request.get_cookie("rand_str")
     rand_str = request.params.rand_str
 
     # パラメータ取得
