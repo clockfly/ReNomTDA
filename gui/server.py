@@ -181,10 +181,15 @@ def load_file_list():
     for i in files_in_db:
         name_list.append(files_in_db[i]["name"])
 
+    # check increase file
     diff_files = list(set(files) - set(name_list))
-
     for f in diff_files:
         storage.register_file(f)
+
+    # check decrease file
+    diff_files = list(set(name_list) - set(files))
+    for f in diff_files:
+        storage.remove_file(f)
 
     files_in_db = storage.get_files()
     body = json.dumps({"files": files_in_db})
@@ -631,7 +636,6 @@ def _search(search_params, canvas_params, db_data, color_data, categorical_data)
 
 @route("/api/search", method="POST")
 def search():
-    # rand_str = request.get_cookie("rand_str")
     rand_str = request.params.rand_str
 
     # パラメータ取得

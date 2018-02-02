@@ -19,7 +19,7 @@ export default {
     'rightsidebar': RightSideBar
   },
   created: function() {
-    if (this.$store.state.topology.filename === "") {
+    if (this.$store.state.topology.file_id === 0) {
       this.$router.push({ path: '/' });
     }
 

@@ -99,6 +99,13 @@ class Storage:
             ret = c.fetchone()
             return ret[0]
 
+    def remove_file(self, file_name):
+        with self.db:
+            c = self.cursor()
+            c.execute("""
+                    DELETE FROM file WHERE name=?
+                """, (file_name,))
+
     def regist_topology_data(self, rand_str, column_number):
         with self.db:
             c = self.cursor()
