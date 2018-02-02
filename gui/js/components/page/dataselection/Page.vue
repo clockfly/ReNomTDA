@@ -14,6 +14,9 @@ export default {
   components: {
     'leftsidebar': LeftSideBar,
     'center': Center
+  },
+  created: function() {
+    this.$store.dispatch("load_file_list");
   }
 }
 </script>

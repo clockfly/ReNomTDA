@@ -3,7 +3,10 @@ let TopologyState = {
   loading: false,
 
   // ファイル名
-  filename: "",
+  file_id: 0,
+
+  // file list
+  files: [],
 
   // カテゴリデータのラベル
   categorical_data_labels: undefined,

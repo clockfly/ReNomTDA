@@ -172,13 +172,33 @@ def _get_data_and_index(filepath):
     return pdata, categorical_data_index, numerical_data_index
 
 
+@route("/api/load_file_list", method="GET")
+def load_file_list():
+    files = os.listdir(DATA_DIR)
+    files_in_db = storage.get_files()
+
+    name_list = []
+    for i in files_in_db:
+        name_list.append(files_in_db[i]["name"])
+
+    diff_files = list(set(files) - set(name_list))
+
+    for f in diff_files:
+        storage.register_file(f)
+
+    files_in_db = storage.get_files()
+    body = json.dumps({"files": files_in_db})
+    r = set_json_body(body)
+    return r
+
+
 # fileのロード
 # TODO
 # ディレクトリ決め打ちを変更
 @route("/api/load_file", method="POST")
 def load_file():
-    filename = request.params.filename
-    filename = filename.split("/")[0]
+    file_id = request.params.file_id
+    filename = storage.get_file_name(file_id)
     filepath = os.path.join(DATA_DIR, filename)
 
     try:
@@ -224,11 +244,10 @@ def load_file():
 # ノードをクリックした時に呼び出す関数
 @route("/api/click", method="POST")
 def click():
-    # rand_str = request.get_cookie("rand_str")
     rand_str = request.params.rand_str
 
-    filename = request.params.filename
-    filename = filename.split("/")[0]
+    file_id = request.params.file_id
+    filename = storage.get_file_name(file_id)
     filepath = os.path.join(DATA_DIR, filename)
     node_index = int(request.params.clicknode)
     columns = int(request.params.columns)
@@ -479,8 +498,8 @@ def create():
     rand_str = request.params.rand_str
 
     # パラメータ取得
-    filename = request.params.filename
-    filename = filename.split("/")[0]
+    file_id = request.params.file_id
+    filename = storage.get_file_name(file_id)
     filepath = os.path.join(DATA_DIR, filename)
     # トポロジーを計算する項目と色をつける項目のインデックスのリストを受け取る
     create_topology_index = list(map(int, request.params.create_topology_index.split(",")))
@@ -616,8 +635,8 @@ def search():
     rand_str = request.params.rand_str
 
     # パラメータ取得
-    filename = request.params.filename
-    filename = filename.split("/")[0]
+    file_id = request.params.file_id
+    filename = storage.get_file_name(file_id)
     filepath = os.path.join(DATA_DIR, filename)
     colorize_topology_index = list(map(int, request.params.colorize_topology_index.split(",")))
 

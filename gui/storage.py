@@ -31,6 +31,14 @@ class Storage:
 
     def _init_db(self):
         c = self.cursor()
+        c.execute("""CREATE TABLE IF NOT EXISTS file
+                        (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                         name TEXT NOT NULL,
+                         created TIMESTAMP,
+                         updated TIMESTAMP,
+                         UNIQUE(name))
+          """)
+
         c.execute('''CREATE TABLE IF NOT EXISTS topology_data
                         (id INTEGER PRIMARY KEY AUTOINCREMENT,
                          rand_str TEXT,
@@ -56,6 +64,40 @@ class Storage:
                          updated TIMESTAMP,
                          UNIQUE(rand_str, column_number))
                   ''')
+
+    def register_file(self, name):
+        with self.db:
+            c = self.cursor()
+            now = datetime.datetime.now()
+            c.execute("""
+                    INSERT INTO file(name, created, updated)
+                    VALUES (?, ?, ?)
+                """, (name, now, now))
+
+    def get_files(self):
+        with self.db:
+            c = self.cursor()
+            c.execute("""
+                    SELECT id, name FROM file;
+                """)
+
+            ret = {}
+            for index, data in enumerate(c.fetchall()):
+                ret.update({index: {
+                    "id": data[0],
+                    "name": data[1],
+                }})
+            return ret
+
+    def get_file_name(self, file_id):
+        with self.db:
+            c = self.cursor()
+            c.execute("""
+                    SELECT name FROM file WHERE id=?
+                """, (file_id,))
+
+            ret = c.fetchone()
+            return ret[0]
 
     def regist_topology_data(self, rand_str, column_number):
         with self.db:

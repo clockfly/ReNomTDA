@@ -1,7 +1,9 @@
 <template>
   <div id="file_loader">
     <div class="input-group vertical">
-      <input type="text" id="filename" placeholder="input file name" v-model="filename">
+      <select v-model="file_id">
+        <option v-for="(item, index) in files" :key="index" :value="item.id">{{ item.name }}</option>
+      </select>
     </div>
 
     <button class="load_file_button" v-on:click="load_file">Load file</button>
@@ -13,13 +15,18 @@ export default {
   name: "TopologyFileLoader",
   data: function() {
     return {
-      filename: ""
+      file_id: 0,
+    }
+  },
+  computed: {
+    files() {
+      return this.$store.state.topology.files;
     }
   },
   methods: {
     load_file: function() {
       this.$store.dispatch('load_file', {
-        'filename': this.filename
+        'file_id': this.file_id
       });
     }
   }
