@@ -35,7 +35,7 @@ export default {
   name: "TopologySearchBox",
   data: function() {
     return {
-      is_categorical: true,
+      is_categorical: false,
       search_column_index: 0,
       operator_index: 0,
       categorical_operators: ["=", "like"],
@@ -48,7 +48,7 @@ export default {
       return this.$store.state.topology.categorical_data_labels;
     },
     numerical_labels() {
-      return this.$store.state.topology.numerical_data_labels;
+      return this.$store.getters.color_labels;
     }
   },
   methods: {
