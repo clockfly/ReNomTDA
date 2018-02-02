@@ -95,7 +95,7 @@ export default {
               return 1;
             }
           })
-          .on('click', function(d, i){ 
+          .on('click', function(d, i){
             if(active_node) {
               active_node.attr("stroke-width", function(d){ return 0; });
             }
@@ -110,16 +110,26 @@ export default {
       }
 
       function setCoordinate(data, bound){
-        if(data < 0.2){
-          return bound*0.1;
-        }else if(data >= 0.2 && data < 0.4){
-          return bound*0.3
-        }else if(data >= 0.4 && data < 0.6){
-          return bound*0.5;
-        }else if(data >= 0.6 && data < 0.8){
-          return bound*0.7;
+        if(data < 0.1){
+          return bound*0.05;
+        }else if(data >= 0.1 && data < 0.2){
+          return bound*0.15
+        }else if(data >= 0.2 && data < 0.3){
+          return bound*0.25;
+        }else if(data >= 0.3 && data < 0.4){
+          return bound*0.35;
+        }else if(data >= 0.4 && data < 0.5){
+          return bound*0.45
+        }else if(data >= 0.5 && data < 0.6){
+          return bound*0.55;
+        }else if(data >= 0.6 && data < 0.7){
+          return bound*0.65;
+        }else if(data >= 0.7 && data < 0.8){
+          return bound*0.75;
+        }else if(data >= 0.8 && data < 0.9){
+          return bound*0.85;
         }else{
-          return bound*0.9;
+          return bound*0.95;
         }
       }
 
@@ -187,7 +197,7 @@ export default {
               return 1;
             }
           })
-          .on('click', function(d, i){ 
+          .on('click', function(d, i){
             if(active_node) {
               active_node.attr("stroke-width", function(d){ return 0; });
             }
@@ -227,7 +237,7 @@ export default {
         if (!d3.event.active) simulation.alphaTarget(1);
         d.fx = null;
         d.fy = null;
-      } 
+      }
     }
   }
 }
