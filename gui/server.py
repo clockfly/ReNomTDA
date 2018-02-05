@@ -16,7 +16,7 @@ import scipy
 
 import string
 
-from bottle import HTTPResponse, request, response, route, run, static_file
+from bottle import HTTPResponse, request, route, run, static_file
 
 from sklearn import cluster, ensemble, neighbors, preprocessing, svm
 
@@ -57,63 +57,6 @@ class AutoEncoder2Layer(rm.Model):
     def encode(self, x):
         el_out = rm.relu(self._encodelayer(x))
         l = self._encodedlayer(el_out)
-        return l
-
-
-class AutoEncoder3Layer(rm.Model):
-    def __init__(self, unit_size):
-        self._encodelayer1 = rm.Dense(25)
-        self._encodelayer2 = rm.Dense(10)
-        self._encodedlayer = rm.Dense(2)
-        self._decodelayer1 = rm.Dense(10)
-        self._decodelayer2 = rm.Dense(25)
-        self._decodedlayer = rm.Dense(unit_size)
-
-    def forward(self, x):
-        el1_out = rm.relu(self._encodelayer1(x))
-        el2_out = rm.relu(self._encodelayer2(el1_out))
-        l = rm.relu(self._encodedlayer(el2_out))
-        dl1_out = rm.relu(self._decodelayer1(l))
-        dl2_out = rm.relu(self._decodelayer2(dl1_out))
-        g = self._decodedlayer(dl2_out)
-        loss = rm.mse(g, x)
-        return loss
-
-    def encode(self, x):
-        el1_out = rm.relu(self._encodelayer1(x))
-        el2_out = rm.relu(self._encodelayer2(el1_out))
-        l = self._encodedlayer(el2_out)
-        return l
-
-
-class AutoEncoder4Layer(rm.Model):
-    def __init__(self, unit_size):
-        self._encodelayer1 = rm.Dense(50)
-        self._encodelayer2 = rm.Dense(25)
-        self._encodelayer3 = rm.Dense(10)
-        self._encodedlayer = rm.Dense(2)
-        self._decodelayer1 = rm.Dense(10)
-        self._decodelayer2 = rm.Dense(25)
-        self._decodelayer3 = rm.Dense(50)
-        self._decodedlayer = rm.Dense(unit_size)
-
-    def forward(self, x):
-        el1_out = rm.relu(self._encodelayer1(x))
-        el2_out = rm.relu(self._encodelayer2(el1_out))
-        el3_out = rm.relu(self._encodelayer3(el2_out))
-        l = rm.relu(self._encodedlayer(el3_out))
-        dl1_out = rm.relu(self._decodelayer1(l))
-        dl2_out = rm.relu(self._decodelayer2(dl1_out))
-        dl3_out = rm.relu(self._decodelayer3(dl2_out))
-        g = self._decodedlayer(dl3_out)
-        loss = rm.mse(g, x)
-        return loss
-
-    def encode(self, x):
-        el1_out = rm.relu(self._encodelayer1(x))
-        el2_out = rm.relu(self._encodelayer2(el1_out))
-        el3_out = rm.relu(self._encodelayer3(el2_out))
-        l = self._encodedlayer(el3_out)
         return l
 
 
@@ -293,19 +236,15 @@ def _dimension_reduction(topology, params, calc_data):
                               batch_size=100,
                               network=AutoEncoder2Layer(calc_data.shape[1]),
                               opt=Adam()),
-                  AutoEncoder(epoch=200,
-                              batch_size=100,
-                              network=AutoEncoder3Layer(calc_data.shape[1]),
-                              opt=Adam()),
-                  AutoEncoder(epoch=200,
-                              batch_size=100,
-                              network=AutoEncoder4Layer(calc_data.shape[1]),
-                              opt=Adam()),
                   None]
     # 表示が切れるので、0~1ではなく0.01~0.99に正規化
     scaler = preprocessing.MinMaxScaler(feature_range=(0.01, 0.99))
-    topology.fit_transform(metric=None, lens=[
-                           algorithms[params["algorithm"]]], scaler=scaler)
+    if algorithms[params["algorithm"]] is None:
+        topology.point_cloud = topology.number_data[:, :2]
+        print(topology.point_cloud.shape)
+    else:
+        topology.fit_transform(metric=None, lens=[
+                               algorithms[params["algorithm"]]], scaler=scaler)
 
 
 def _get_topology_color(topo, cdata):
@@ -454,7 +393,12 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
                     return canvas_data, pca_result
 
                 nodes = topology.nodes.tolist()
-                edges = topology.edges.tolist()
+
+                if topology.edges is None:
+                    edges = []
+                else:
+                    edges = topology.edges.tolist()
+
                 sizes = _get_topology_sizes(topology, canvas_params[key]["resolution"])
             # パラメータが変わっていなければdbのデータを使う
             else:
