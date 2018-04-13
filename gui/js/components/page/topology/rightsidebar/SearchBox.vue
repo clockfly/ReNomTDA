@@ -56,10 +56,13 @@ export default {
   },
   methods: {
     search: function() {
+      if(!this.$store.state.topology.nodes) {
+        alert("Data is not visualized.");
+        return;
+      }
+
       // check input value
       if(!this.is_categorical && !isFinite(this.search_value)){
-        console.log(this.search_value);
-        console.log(isFinite(this.search_value));
         alert("If you search number data, you can only input number data");
         return;
       }

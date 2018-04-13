@@ -30,6 +30,11 @@ export default {
   },
   methods: {
     load_file: function() {
+      if(this.file_id == 0) {
+        alert("File not selected.");
+        return;
+      }
+
       this.$store.dispatch('load_file', {
         'file_id': this.file_id
       });
