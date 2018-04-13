@@ -25,6 +25,11 @@ export default {
 </script>
 
 <style lang="scss">
+@import url('https://rsms.me/inter/inter-ui.css');
+* {
+  font-family: 'Inter UI', sans-serif;
+}
+
 .container {
   margin: 0;
   padding: 0;

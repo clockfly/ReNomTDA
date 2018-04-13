@@ -162,7 +162,7 @@ export default {
 
   #canvas_header {
     width: 100%;
-    height: 5%;
+    height: 40px;
     .canvas_header_button_area {
       float: left;
       height: 100%;
@@ -182,7 +182,7 @@ export default {
     }
   }
   .canvas_area {
-    height: 95%;
+    height: calc(100% - 40px);
     width: 100%;
     svg {
       height: 100%;

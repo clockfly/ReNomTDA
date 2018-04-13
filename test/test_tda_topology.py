@@ -655,3 +655,37 @@ def test_search_target_data():
 
     test_color = ['#cccccc', '#cccccc', '#b2b200']
     assert t.hex_colors == test_color
+
+
+def test_search_by_column_name():
+    data = np.array([[0., 0.],
+                     [0.1, 0.1],
+                     [0.2, 0.2],
+                     [0.2, 0.8],
+                     [0.1, 0.9],
+                     [0., 1.],
+                     [0.8, 0.8],
+                     [0.9, 0.9],
+                     [1., 1.]])
+
+    columns = np.array(["columns1", "columns2"])
+
+    target = np.array([[0], [0], [0],
+                       [1], [1], [1],
+                       [2], [2], [2]])
+
+    t = Topology()
+    t.load_data(data, number_data_columns=columns)
+    t.fit_transform(metric=None, lens=None)
+    t.map(resolution=2, overlap=0.3)
+    t.color(target, color_method="mean", color_type="rgb", normalize=False)
+    search_dicts = [{
+        "data_type": "number",
+        "operator": "=",
+        "column": "columns1",
+        "value": 0
+    }]
+    t.search_from_values(search_dicts=search_dicts, target=target, search_type="column")
+
+    test_color = ['#0000b2', '#00b200', '#cccccc']
+    assert t.hex_colors == test_color

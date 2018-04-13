@@ -246,5 +246,6 @@ export default {
 <style lang="scss">
 #canvas, #canvas2{
   position: relative;
+  height: 100%;
 }
 </style>
