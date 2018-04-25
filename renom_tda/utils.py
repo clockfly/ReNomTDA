@@ -4,7 +4,7 @@ import itertools
 import numpy as np
 import scipy
 from scipy.spatial import distance
-from painter import PainterResolver
+from renom_tda.painter import PainterResolver
 
 
 class DistUtil(object):
@@ -59,11 +59,23 @@ class MapUtil(object):
     """Class of Mapping utility."""
 
     def __init__(self, resolution=10, overlap=1, clusterer=None):
+        if resolution <= 0:
+            raise Exception("Resolution must greater than 0.")
+
+        if overlap <= 0:
+            raise Exception("Overlap must greater than 0.")
+
         self.resolution = resolution
         self.overlap = overlap
         self.clusterer = clusterer
 
     def map(self, data, point_cloud):
+        if data is None:
+            raise Exception("Data must not None.")
+
+        if point_cloud is None:
+            raise Exception("Point cloud must not None.")
+
         hypercubes = {}
 
         # データのindex。hypercubeに含まれるデータを特定するのに使う。
@@ -111,7 +123,7 @@ class MapUtil(object):
                                     {created_node_count: hypercube_value})
                                 created_node_count += 1
                 else:
-                    hypercubes.update({created_node_count: masked_data_ids})
+                    hypercubes.update({created_node_count: list(masked_data_ids)})
                     created_node_count += 1
 
         return hypercubes
@@ -121,6 +133,12 @@ class GraphUtil(object):
     """Class of Graph utility."""
 
     def __init__(self, point_cloud, hypercubes):
+        if point_cloud is None:
+            raise Exception("point_cloud must not None.")
+
+        if hypercubes is None:
+            raise Exception("hypercubes must not None.")
+
         self.point_cloud = point_cloud
         self.hypercubes = hypercubes
 
@@ -160,6 +178,15 @@ class GraphUtil(object):
         return edges
 
     def color(self, target, color_method, color_type):
+        if target is None:
+            raise Exception("Target must not None.")
+
+        if color_method not in ["mean", "mode"]:
+            raise Exception("color_method {} is not usable.".format(color_method))
+
+        if color_type not in ["rgb", "gray"]:
+            raise Exception("color_type {} is not usable.".format(color_type))
+
         painter_resolver = PainterResolver()
         painter = painter_resolver.resolve(color_type)
 

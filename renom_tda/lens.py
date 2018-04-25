@@ -180,15 +180,25 @@ class Isomap(Lens):
 
 
 class Lenses(Lens):
-    """docstring for Lenses"""
+    """Class of projection data.
+
+    Params:
+        filters: The array of lens.
+    """
 
     def __init__(self, filters):
         self.filters = filters
 
     @Lens._check_data
     def fit_transform(self, data):
+        """Function of projection with filters.
+
+        Params:
+            data: raw data or distance matrix.
+
+        """
+        # initialize return data.
         ret_data = None
-        # lensによって射影後の次元数は異なるのでNoneで初期化
 
         if (self.filters is not None) and (len(self.filters) > 0):
             for f in self.filters:

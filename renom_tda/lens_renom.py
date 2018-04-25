@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from sklearn.model_selection import train_test_split
-from lens import Lens
+from renom_tda.lens import Lens
 
 try:
     from renom.optimizer import Sgd

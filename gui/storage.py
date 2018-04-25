@@ -132,7 +132,7 @@ class Storage:
                              nodes, edges, colors, sizes, filename, pca_result):
         with self.db:
             c = self.cursor()
-            d = topology._re_standardize(topology.number_data)
+            d = topology.number_data
             input_data = cPickle.dumps(d)
             categorical_data = cPickle.dumps(categorical_data)
             point_cloud = cPickle.dumps(topology.point_cloud)

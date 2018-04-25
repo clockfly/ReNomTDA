@@ -2,6 +2,7 @@
 from __future__ import print_function
 from abc import ABCMeta, abstractmethod
 from future.utils import with_metaclass
+import functools
 import numpy as np
 
 
@@ -10,6 +11,16 @@ class Searcher(with_metaclass(ABCMeta, object)):
         if data_type == self.data_type:
             return True
         return False
+
+    def _check_data(func):
+        @functools.wraps(func)
+        def wrapper(*args):
+            if args[1] is None:
+                raise ValueError("Search column must not None.")
+            if args[3] is None:
+                raise ValueError("Search value must not None.")
+            return func(*args)
+        return wrapper
 
     @abstractmethod
     def search(self):
@@ -22,13 +33,14 @@ class NumberSearcher(Searcher):
         self.data = np.array(data)
         self.columns = columns
 
+    @Searcher._check_data
     def search(self, column, operator, value):
         index = []
         if operator == "=":
             index.extend(np.where(self.data[:, column] == value)[0])
         elif operator == ">":
             index.extend(np.where(self.data[:, column] >= value)[0])
-        if operator == "<":
+        elif operator == "<":
             index.extend(np.where(self.data[:, column] <= value)[0])
         return index
 
@@ -39,12 +51,13 @@ class TextSearcher(Searcher):
         self.data = np.array(data)
         self.columns = columns
 
+    @Searcher._check_data
     def search(self, column, operator, value):
         index = []
         if operator == "=":
-            index.extend(np.where(self.data == value)[0])
+            index.extend(np.where(self.data[:, column] == value)[0])
         elif operator == "like":
-            for i, d in enumerate(self.data):
+            for i, d in enumerate(self.data[:, column]):
                 if value in d:
                     index.append(i)
         return index

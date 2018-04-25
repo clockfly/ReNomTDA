@@ -26,6 +26,7 @@ from renom.optimizer import Adam
 from renom_tda.lens import PCA, TSNE, MDS, Isomap
 from renom_tda.lens_renom import AutoEncoder
 from renom_tda.topology import Topology
+from renom_tda.utils import GraphUtil
 
 from storage import storage
 
@@ -311,6 +312,7 @@ def _set_topology_data(topology, db_data):
     topology.load_data(number_data=db_data["input_data"], standardize=True)
     topology.point_cloud = db_data["point_cloud"]
     topology.hypercubes = db_data["hypercubes"]
+    topology.graph = GraphUtil(point_cloud=db_data["point_cloud"], hypercubes=db_data["hypercubes"])
 
 
 def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db_data, filename):
@@ -331,9 +333,9 @@ def _create(rand_str, canvas_params, calc_data, color_data, categorical_data, db
             _dimension_reduction(topology, canvas_params[key], calc_data)
             # pcaの主成分軸を設定
             if canvas_params[key]["algorithm"] == 0:
-                sort_index = np.argsort(np.abs(topology.lens[0].axis), axis=1)
-                pca_result["axis"] = np.around(topology.lens[0].axis, 3).tolist()
-                pca_result["contribution_ratio"] = np.around(np.sum(topology.lens[0].contribution_ratio), 3)
+                sort_index = np.argsort(np.abs(topology.lens[0].components_), axis=1)
+                pca_result["axis"] = np.around(topology.lens[0].components_, 3).tolist()
+                pca_result["contribution_ratio"] = np.around(np.sum(topology.lens[0].explained_variance_ratio_), 3)
                 pca_result["top_index"] = sort_index[:, -3:].tolist()
         else:
             # アルゴリズムが変わっていなければDBの値を使う
@@ -565,13 +567,13 @@ def _search(search_params, canvas_params, db_data, color_data, categorical_data)
             topology.load_data(color_data, text_data=categorical_data, standardize=True)
             if canvas_params[key]["mode"] == 3:
                 # トポロジーを検索
-                topology.search_from_values(search_dicts=[dict_values], target=None, search_type="index")
+                topology.search_from_values(search_dicts=[dict_values], target=None, search_type="and")
                 colors = topology.hex_colors
 
             else:
                 # point cloudを検索
                 topology.color_point_cloud(cdata)
-                topology.search_point_cloud(search_dicts=[dict_values], target=None, search_type="index")
+                topology.search_point_cloud(search_dicts=[dict_values], target=None, search_type="and")
                 colors = topology.point_cloud_hex_colors
 
         canvas_colors.update({key: {"colors": colors}})

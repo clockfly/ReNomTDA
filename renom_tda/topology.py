@@ -5,18 +5,49 @@ import numpy as np
 import pandas as pd
 from sklearn import cluster, preprocessing
 
-from lens import Lenses
-from utils import DistUtil, MapUtil, GraphUtil
-from painter import PainterResolver
-from presenter import PresenterResolver
-from searcher import SearcherResolver
+from renom_tda.lens import Lenses
+from renom_tda.utils import DistUtil, MapUtil, GraphUtil
+from renom_tda.painter import PainterResolver
+from renom_tda.presenter import PresenterResolver
+from renom_tda.searcher import SearcherResolver
 
 
 class Topology(object):
-    def __init__(self):
+    def __init__(self, verbose=1):
+        self.verbose = verbose
+        self._init_params()
+
+    def _init_params(self):
+        # input data
+        self.text_data = None
+        self.text_data_columns = None
+        self.number_data = None
+        self.number_data_columns = None
+        # standardize info
+        self.standardize = False
+        self.number_data_avg = None
+        self.number_data_std = None
+        # transform
         self.dist_util = None
+        self.metric = None
+        self.lens = None
         self.scaler = preprocessing.StandardScaler()
-        pass
+        # map
+        self.resolution = 0
+        self.overlap = 0
+        self.eps = 0
+        self.min_samples = 0
+        # output data
+        self.graph = None
+        self.train_index = np.array([])
+        self.point_cloud = None
+        self.hypercubes = {}
+        self.nodes = None
+        self.edges = None
+        self.node_sizes = None
+        self.colors = None
+        self.color_target = None
+        self.hex_colors = None
 
     def load_data(self, number_data, text_data=None, text_data_columns=None,
                   number_data_columns=None, standardize=False):
@@ -128,7 +159,7 @@ class Topology(object):
     def color(self, target, color_method="mean", color_type="rgb", normalize=True):
         if normalize:
             scaler = preprocessing.MinMaxScaler()
-            self.normalized_target = scaler.fit_transform(np.array(target).reshape(-1,1).astype(float))
+            self.normalized_target = scaler.fit_transform(np.array(target).reshape(-1, 1).astype(float))
         else:
             self.normalized_target = np.array(target)
 
@@ -168,7 +199,7 @@ class Topology(object):
     def search_from_values(self, search_dicts=None, target=None, search_type="and"):
         self.search(search_dicts=search_dicts, target=target, search_type=search_type)
 
-    def _get_searched_index(self, data, search_type="and"):
+    def _get_searched_index(self, data, search_dicts, search_type="and"):
         resolver = SearcherResolver(data, self.text_data, self.number_data_columns, self.text_data_columns)
 
         data_index = []
@@ -197,7 +228,7 @@ class Topology(object):
         else:
             d = np.concatenate([self.number_data, target.reshape(-1, 1)], axis=1)
 
-        data_index = self._get_searched_index(d, search_type)
+        data_index = self._get_searched_index(d, search_dicts, search_type)
         node_index = self._node_index_from_data_id(data_index)
         self._set_search_color(node_index)
         return node_index
@@ -231,7 +262,7 @@ class Topology(object):
     def color_point_cloud(self, target, color_type="rgb", normalize=False):
         if normalize:
             scaler = preprocessing.MinMaxScaler()
-            self.normalized_target = scaler.fit_transform(np.array(target).reshape(-1,1).astype(float))
+            self.normalized_target = scaler.fit_transform(np.array(target).reshape(-1, 1).astype(float))
         else:
             self.normalized_target = np.array(target)
 
@@ -292,7 +323,7 @@ class Topology(object):
             labels[self.test_index] += clusterer.predict(x_test).reshape(-1, 1)
 
             scaler = preprocessing.MinMaxScaler()
-            labels = scaler.fit_transform(np.array(labels).reshape(-1,1).astype(float))
+            labels = scaler.fit_transform(np.array(labels).reshape(-1, 1).astype(float))
             self.point_cloud_hex_colors = [painter.paint(i) for i in labels]
 
     def unsupervised_clustering_point_cloud(self, clusterer=None):
@@ -332,7 +363,7 @@ class Topology(object):
         else:
             d = np.concatenate([self.number_data, target.reshape(-1, 1)], axis=1)
 
-        data_index = self._get_searched_index(d, search_type)
+        data_index = self._get_searched_index(d, search_dicts, search_type)
         self._set_search_point_cloud_color(data_index)
         return data_index
 
