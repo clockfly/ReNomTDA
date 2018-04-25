@@ -1,12 +1,8 @@
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
-
-import pytest
-
-from sklearn.cluster import DBSCAN
-
+from sklearn import cluster, preprocessing
 from renom_tda.lens import PCA, L1Centrality, GaussianDensity
-from renom_tda.metric import Distance
 from renom_tda.topology import Topology
 
 
@@ -50,10 +46,9 @@ def test_load_data_standardize_true():
     t = Topology()
     t.load_data(data, standardize=True)
 
-    data_avg = np.array([0.5, 0.5])
-    data_std = np.array([0.5, 0.5])
-    test_data = (data - data_avg) / (data_std + 1e-10)
-    assert_array_equal(t.number_data, test_data)
+    scaler = preprocessing.StandardScaler()
+    test_data = scaler.fit_transform(data)
+    assert_array_equal(t.std_number_data, test_data)
 
 
 def test_load_data_number_data_columns():
@@ -140,7 +135,7 @@ def test_load_data_text_data_columns_text_data_diff_columns():
 
 def test_transform_data_none():
     t = Topology()
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         t.fit_transform()
 
 
@@ -181,7 +176,7 @@ def test_transform_multi_lens():
     t = Topology()
     t.load_data(data)
 
-    metric = Distance(metric="hamming")
+    metric = "hamming"
     lens = [L1Centrality(), GaussianDensity(h=0.25)]
     t.fit_transform(metric=metric, lens=lens)
 
@@ -205,7 +200,7 @@ def test_map():
     t.load_data(data)
     t.fit_transform(metric=None, lens=None)
 
-    t.map(resolution=2, overlap=0.3, eps=0.1, min_samples=3)
+    t.map(resolution=2, overlap=0.3, eps=0.3, min_samples=3)
 
     test_nodes = np.array([[0.25, 0.25],
                            [0.25, 0.75],
@@ -225,7 +220,7 @@ def test_map():
 
 def test_map_point_cloud_none():
     t = Topology()
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         t.map()
 
 
@@ -243,7 +238,7 @@ def test_map_resolution_under_zero():
     t = Topology()
     t.load_data(data)
     t.fit_transform(metric=None, lens=None)
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         t.map(resolution=-1)
 
 
@@ -261,7 +256,7 @@ def test_map_overlap_under_zero():
     t = Topology()
     t.load_data(data)
     t.fit_transform(metric=None, lens=None)
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         t.map(overlap=-1)
 
 
@@ -279,7 +274,7 @@ def test_map_eps_under_zero():
     t = Topology()
     t.load_data(data)
     t.fit_transform(metric=None, lens=None)
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         t.map(eps=-1)
 
 
@@ -297,7 +292,7 @@ def test_map_min_samples_under_zero():
     t = Topology()
     t.load_data(data)
     t.fit_transform(metric=None, lens=None)
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         t.map(min_samples=-1)
 
 
@@ -322,9 +317,9 @@ def test_color_mode_rgb():
 
     t.map(resolution=2, overlap=0.3, eps=0.2, min_samples=3)
 
-    t.color(target, color_method="mode", color_type="rgb", normalize=False)
+    t.color(target, color_method="mode", color_type="rgb", normalize=True)
 
-    test_color = ['#0000b2', '#00b200', '#b2b200']
+    test_color = ['#0000b2', '#00b200', '#b20000']
 
     assert t.hex_colors == test_color
 
@@ -350,9 +345,9 @@ def test_color_mean_rgb():
 
     t.map(resolution=2, overlap=0.3, eps=0.2, min_samples=3)
 
-    t.color(target, color_method="mean", color_type="rgb", normalize=False)
+    t.color(target, color_method="mean", color_type="rgb", normalize=True)
 
-    test_color = ['#0000b2', '#00b200', '#b2b200']
+    test_color = ['#0000b2', '#00b200', '#b20000']
 
     assert t.hex_colors == test_color
 
@@ -378,9 +373,9 @@ def test_color_mode_gray():
 
     t.map(resolution=2, overlap=0.3, eps=0.2, min_samples=3)
 
-    t.color(target, color_method="mode", color_type="gray", normalize=False)
+    t.color(target, color_method="mode", color_type="gray", normalize=True)
 
-    test_color = ['#dcdcdc', '#787878', '#464646']
+    test_color = ['#dcdcdc', '#787878', '#141414']
 
     assert t.hex_colors == test_color
 
@@ -406,9 +401,9 @@ def test_color_mean_gray():
 
     t.map(resolution=2, overlap=0.3, eps=0.2, min_samples=3)
 
-    t.color(target, color_method="mean", color_type="gray", normalize=False)
+    t.color(target, color_method="mean", color_type="gray", normalize=True)
 
-    test_color = ['#dcdcdc', '#787878', '#464646']
+    test_color = ['#dcdcdc', '#787878', '#141414']
 
     assert t.hex_colors == test_color
 
@@ -453,7 +448,7 @@ def test_color_different_size_input():
     t.fit_transform()
     t.map()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         t.color(target)
 
 
@@ -528,14 +523,14 @@ def test_search_text_data():
     t.load_data(data, text_data=text_data)
     t.fit_transform(metric=None, lens=None)
     t.map(resolution=2, overlap=0.3)
-    t.color(target, color_method="mean", color_type="rgb", normalize=False)
+    t.color(target, color_method="mean", color_type="rgb", normalize=True)
     search_dicts = [{
         "data_type": "text",
         "operator": "=",
         "column": 0,
         "value": "a"
     }]
-    t.search_from_values(search_dicts=search_dicts, target=None, search_type="index")
+    t.search_from_values(search_dicts=search_dicts, target=None)
 
     test_color = ['#0000b2', '#cccccc', '#cccccc']
     assert t.hex_colors == test_color
@@ -564,7 +559,7 @@ def test_search_number_data():
     t.load_data(data, text_data=text_data)
     t.fit_transform(metric=None, lens=None)
     t.map(resolution=2, overlap=0.3)
-    t.color(target, color_method="mean", color_type="rgb", normalize=False)
+    t.color(target, color_method="mean", color_type="rgb", normalize=True)
     search_dicts = [{
         "data_type": "number",
         "operator": ">",
@@ -573,7 +568,7 @@ def test_search_number_data():
     }]
     t.search_from_values(search_dicts=search_dicts, target=None, search_type="index")
 
-    test_color = ['#cccccc', '#cccccc', '#b2b200']
+    test_color = ['#cccccc', '#cccccc', '#b20000']
     assert t.hex_colors == test_color
 
 
@@ -600,7 +595,7 @@ def test_search_multiple_values():
     t.load_data(data, text_data=text_data)
     t.fit_transform(metric=None, lens=None)
     t.map(resolution=2, overlap=0.3)
-    t.color(target, color_method="mean", color_type="rgb", normalize=False)
+    t.color(target, color_method="mean", color_type="rgb", normalize=True)
     search_dicts = [{
         "data_type": "number",
         "operator": "<",
@@ -612,7 +607,7 @@ def test_search_multiple_values():
         "column": 0,
         "value": "a"
     }]
-    t.search_from_values(search_dicts=search_dicts, target=None, search_type="index")
+    t.search_from_values(search_dicts=search_dicts, target=None, search_type="and")
 
     test_color = ['#0000b2', '#cccccc', '#cccccc']
     assert t.hex_colors == test_color
@@ -644,48 +639,14 @@ def test_search_target_data():
     t.load_data(data, number_data_columns=columns, text_data=text_data, text_data_columns=text_data_columns)
     t.fit_transform(metric=None, lens=None)
     t.map(resolution=2, overlap=0.3)
-    t.color(target, color_method="mean", color_type="rgb", normalize=False)
+    t.color(target, color_method="mean", color_type="rgb", normalize=True)
     search_dicts = [{
         "data_type": "number",
         "operator": "=",
-        "column": "target",
+        "column": -1,
         "value": 2
     }]
-    t.search_from_values(search_dicts=search_dicts, target=target, search_type="column")
+    t.search_from_values(search_dicts=search_dicts, target=target, search_type="and")
 
-    test_color = ['#cccccc', '#cccccc', '#b2b200']
-    assert t.hex_colors == test_color
-
-
-def test_search_by_column_name():
-    data = np.array([[0., 0.],
-                     [0.1, 0.1],
-                     [0.2, 0.2],
-                     [0.2, 0.8],
-                     [0.1, 0.9],
-                     [0., 1.],
-                     [0.8, 0.8],
-                     [0.9, 0.9],
-                     [1., 1.]])
-
-    columns = np.array(["columns1", "columns2"])
-
-    target = np.array([[0], [0], [0],
-                       [1], [1], [1],
-                       [2], [2], [2]])
-
-    t = Topology()
-    t.load_data(data, number_data_columns=columns)
-    t.fit_transform(metric=None, lens=None)
-    t.map(resolution=2, overlap=0.3)
-    t.color(target, color_method="mean", color_type="rgb", normalize=False)
-    search_dicts = [{
-        "data_type": "number",
-        "operator": "=",
-        "column": "columns1",
-        "value": 0
-    }]
-    t.search_from_values(search_dicts=search_dicts, target=target, search_type="column")
-
-    test_color = ['#0000b2', '#00b200', '#cccccc']
+    test_color = ['#cccccc', '#cccccc', '#b20000']
     assert t.hex_colors == test_color

@@ -25,8 +25,7 @@ class Topology(object):
         self.number_data_columns = None
         # standardize info
         self.standardize = False
-        self.number_data_avg = None
-        self.number_data_std = None
+        self.std_number_data = None
         # transform
         self.dist_util = None
         self.metric = None
@@ -116,6 +115,9 @@ class Topology(object):
             self.std_number_data = np.array(self.number_data)
 
     def fit_transform(self, metric=None, lens=None, scaler=preprocessing.MinMaxScaler()):
+        if self.std_number_data is None:
+            raise Exception("Data doesn't loaded.")
+
         self.metric = metric
         self.lens = lens
         self.scaler = scaler
@@ -138,6 +140,21 @@ class Topology(object):
         self.point_cloud = d
 
     def map(self, resolution=10, overlap=1, eps=1, min_samples=1):
+        if self.point_cloud is None:
+            raise Exception("Point cloud is None.")
+
+        if resolution <= 0:
+            raise Exception("Resolution must greater than 0.")
+
+        if overlap <= 0:
+            raise Exception("Overlap must greater than 0.")
+
+        if eps <= 0:
+            raise Exception("Eps must greater than 0.")
+
+        if min_samples <= 0:
+            raise Exception("Min samples must greater than 0.")
+
         self.resolution = resolution
         self.overlap = overlap
         self.eps = eps
@@ -157,6 +174,9 @@ class Topology(object):
         self.edges = self.graph.calc_edges()
 
     def color(self, target, color_method="mean", color_type="rgb", normalize=True):
+        if self.point_cloud.shape[0] != target.shape[0]:
+            raise Exception("target must have same row size of data.")
+
         if normalize:
             scaler = preprocessing.MinMaxScaler()
             self.normalized_target = scaler.fit_transform(np.array(target).reshape(-1, 1).astype(float))
@@ -205,8 +225,9 @@ class Topology(object):
         data_index = []
 
         for d in search_dicts:
+            print(d)
             searcher = resolver.resolve(d["data_type"])
-            index = searcher.search(column=d["column"], operator=d["operator"], value=d["value"])
+            index = searcher.search(d["column"], d["operator"], d["value"])
 
             if len(data_index) > 0:
                 # concatenate
