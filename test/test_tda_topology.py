@@ -566,7 +566,7 @@ def test_search_number_data():
         "column": 0,
         "value": 0.7
     }]
-    t.search_from_values(search_dicts=search_dicts, target=None, search_type="index")
+    t.search_from_values(search_dicts=search_dicts, target=None, search_type="and")
 
     test_color = ['#cccccc', '#cccccc', '#b20000']
     assert t.hex_colors == test_color

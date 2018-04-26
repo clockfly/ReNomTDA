@@ -11,6 +11,7 @@ class Lens(with_metaclass(ABCMeta, object)):
     """Abstract class of data loading modules."""
 
     def _check_data(func):
+        """Function of check input data."""
         @functools.wraps(func)
         def wrapper(*args):
             if args[1] is None:
@@ -20,6 +21,7 @@ class Lens(with_metaclass(ABCMeta, object)):
 
     @abstractmethod
     def fit_transform(self):
+        """fit_transform is required."""
         pass
 
 

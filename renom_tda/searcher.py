@@ -7,12 +7,15 @@ import numpy as np
 
 
 class Searcher(with_metaclass(ABCMeta, object)):
+    """Abstract class of searching data."""
+
     def is_type(self, data_type):
         if data_type == self.data_type:
             return True
         return False
 
     def _check_data(func):
+        """Function of checking value of search conditions."""
         @functools.wraps(func)
         def wrapper(*args):
             if args[1] is None:
@@ -28,6 +31,14 @@ class Searcher(with_metaclass(ABCMeta, object)):
 
 
 class NumberSearcher(Searcher):
+    """Class of search number data.
+
+    Params:
+        data: number data.
+
+        columns: number data columns.
+    """
+
     def __init__(self, data, columns):
         self.data_type = "number"
         self.data = np.array(data)
@@ -35,6 +46,15 @@ class NumberSearcher(Searcher):
 
     @Searcher._check_data
     def search(self, column, operator, value):
+        """Function of searching data.
+
+        Params:
+            column: searched data column index.
+
+            operator: search operator.
+
+            value: search value.
+        """
         index = []
         if operator == "=":
             index.extend(np.where(self.data[:, column] == value)[0])
@@ -46,6 +66,14 @@ class NumberSearcher(Searcher):
 
 
 class TextSearcher(Searcher):
+    """Class of search text data.
+
+    Params:
+        data: text data.
+
+        columns: text data columns.
+    """
+
     def __init__(self, data, columns):
         self.data_type = "text"
         self.data = np.array(data)
@@ -53,6 +81,15 @@ class TextSearcher(Searcher):
 
     @Searcher._check_data
     def search(self, column, operator, value):
+        """Function of searching data.
+
+        Params:
+            column: searched data column index.
+
+            operator: search operator.
+
+            value: search value.
+        """
         index = []
         if operator == "=":
             index.extend(np.where(self.data[:, column] == value)[0])
@@ -64,12 +101,22 @@ class TextSearcher(Searcher):
 
 
 class SearcherResolver(object):
+    """Resolve searcher from data_type."""
+
     def __init__(self, numbers, texts, number_columns, text_columns):
         self.searcher_list = [
             NumberSearcher(numbers, number_columns),
             TextSearcher(texts, text_columns)]
 
     def resolve(self, data_type):
+        """Function of getting searcher.
+
+        Params:
+            data_type: type of data.
+
+        Return:
+            searcher: resolved searcher instance.
+        """
         for s in self.searcher_list:
             if s.is_type(data_type):
                 return s

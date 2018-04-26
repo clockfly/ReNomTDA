@@ -15,12 +15,27 @@ class Loader(with_metaclass(ABCMeta, object)):
 
 
 class CSVLoader(Loader):
-    """Loader of CSV file."""
+    """Loader of CSV file.
+
+    Params:
+        file_name: load file name.
+    """
 
     def __init__(self, file_name):
         self.file_name = file_name
 
     def load(self):
+        """Function of loading data.
+
+        Return:
+            number_data: numpy array of number data.
+
+            text_data: numpy array of text data.
+
+            number_columns: array of number data column names.
+
+            text_columns: array of text data column names.
+        """
         file_data = pd.read_csv(self.file_name).dropna()
         text_index = (file_data.dtypes == "object")
         number_index = np.logical_or(file_data.dtypes == "float", file_data.dtypes == "int")
