@@ -1,23 +1,14 @@
 # coding: utf-8
 
 import json
-
 import os
-
 import numpy as np
-
 import pandas as pd
-
 import pkg_resources
-
 import random
-
 import scipy
-
 import string
-
 from bottle import HTTPResponse, request, route, run, static_file
-
 from sklearn import cluster, ensemble, neighbors, preprocessing, svm
 
 import renom as rm
