@@ -270,7 +270,7 @@ class Topology(object):
 
             strength: Strength of repulsive force between nodes in "spring" mode.
         """
-        if mode not in ["normal", "spring"]:
+        if mode not in ["normal", "spring", "spectral"]:
             raise Exception("mode {} is not usable.".format(mode))
 
         # show with presenter show function.
