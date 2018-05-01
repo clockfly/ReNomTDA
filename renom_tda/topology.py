@@ -219,7 +219,12 @@ class Topology(object):
         # create nodes and edges with graph utility
         self.graph_util = GraphUtil(point_cloud=self.point_cloud, hypercubes=self.hypercubes)
         self.nodes, self.node_sizes = self.graph_util.calc_node_coordinate()
+        if self.verbose == 1:
+            print("created {} nodes.".format(self.nodes.shape[0]))
+
         self.edges = self.graph_util.calc_edges()
+        if self.verbose == 1:
+            print("created {} edges.".format(self.edges.shape[0]))
 
     def color(self, target, color_method="mean", color_type="rgb",
               normalize=True):

@@ -185,99 +185,129 @@ class SpectralPresenter(Presenter):
         node_size: The size of node.
 
         edge_width: The width of edge.
-
-        strength: strength of repulsive between nodes.
     """
 
-    def __init__(self, fig_size, node_size, edge_width, strength):
+    def __init__(self, fig_size, node_size, edge_width):
         self.mode = "spectral"
         self.fig_size = fig_size
         self.node_size = node_size
         self.edge_width = edge_width
-        self.strength = strength
 
-    def _plot(self, nodes, edges, node_sizes, colors):
+    def _init_adjacency_matrix(self, nodes, edges):
         # init adjacency matrix
-        adjacency_matrix = np.zeros((len(nodes), len(nodes)))
+        self.adjacency_matrix = np.zeros((len(nodes), len(nodes)))
 
-        # create adjacency_matrix edges
+        # create adjacency_matrix by edges
         for e in edges:
-            adjacency_matrix[e[0], e[1]] = 1
-            adjacency_matrix[e[1], e[0]] = 1
+            self.adjacency_matrix[e[0], e[1]] = 1
+            self.adjacency_matrix[e[1], e[0]] = 1
 
-        # copy adjacency matrix
-        # 1 cluster nodes regard cluster
-        dummy_matrix = copy(adjacency_matrix)
-
-        # independent nodes
-        independent_index = np.where(np.sum(adjacency_matrix, axis=0) == 0)[0]
-
-        # make dummy edge
-        for i in itertools.permutations(independent_index, 2):
-            dummy_matrix[i[0], i[1]] = 1
-            dummy_matrix[i[1], i[0]] = 1
-
-        # make graph from dummy matrix
-        dummy_graph = nx.from_numpy_matrix(dummy_matrix)
+    def _get_connections(self):
+        # make graph
+        graph = nx.from_numpy_matrix(self.adjacency_matrix)
         # graph connections
-        connections = [set(x) for x in nx.connected_components(dummy_graph)]
+        return sorted(nx.connected_components(graph), key=len, reverse=True)
 
-        # cluster size dict
-        cluster = {}
-        for i, c in enumerate(nx.connected_components(dummy_graph)):
-            cluster.update({i: len(c)})
-        cluster = sorted(cluster.items(), key=lambda x: x[1], reverse=True)
-
-        # cluster max size
-        c_max = cluster[0][1]
-        # init row clusters list
-        arange_list = []
-
-        # tmp data
-        tmp_size_sum = 0
-        tmp_index_list = []
+    def _get_diameters(self, connections):
+        # initialize diameter list
+        diameters = np.zeros(len(connections))
         # append cluster index list to arange_list per row
-        for i, c in cluster:
-            tmp_index_list.append(i)
-            tmp_size_sum += c
-            if tmp_size_sum >= c_max:
-                arange_list.append(tmp_index_list)
-                tmp_size_sum = 0
-                tmp_index_list = []
-        arange_list.append(tmp_index_list)
+        for i, c in enumerate(connections):
+            data_index = np.array(list(c))
+            subcluster = self.adjacency_matrix[data_index][:, data_index]
+            g = nx.from_numpy_matrix(subcluster)
+            diameters[i] = nx.diameter(g)
+        return diameters
 
-        # calc coordinate from dummy graph
+    def _get_row_arrangement(self, connections, diameters, max_diameter):
+        # arrangement of clusters
+        arrangement = []
+        # tmp data
+        row_diameter_sum = 0
+        row_cluster_index = []
+        # append cluster index list to arange_list per row
+        for i, c in enumerate(connections):
+            row_cluster_index.append(i)
+            row_diameter_sum += diameters[i]
+
+            if row_diameter_sum >= max_diameter:
+                arrangement.append(row_cluster_index)
+                row_diameter_sum = 0
+                row_cluster_index = []
+        arrangement.append(row_cluster_index)
+        return arrangement
+
+    def _calc_coordinate(self, nodes, connections, diameters, max_diameter, arrangement, row_max_diameters):
+        # calc coordinate
         pos = {}
-        for ind, l in enumerate(arange_list):
-            accum_cluster_size = 0
-            total_cluster_size = c_max
+        accum_height = 0
+        total_heights = sum(row_max_diameters)
+        total_width = max_diameter
+        for i, l in enumerate(arrangement):
+            accum_width = 0
 
             # calc coordinate per clusters
-            for i in l:
-                data_index = np.array(list(connections[i]))
-                cluster_size = len(connections[i])
-                subcluster = dummy_matrix[data_index][:, data_index]
+            for cluster_index in l:
+                data_index = np.array(list(connections[cluster_index]))
+                cluster_size = diameters[cluster_index] if diameters[cluster_index] > 0 else 1.
 
-                init_pos = {}
-                for j, n in enumerate(nodes[data_index]):
-                    init_pos.update({j: [n[0], n[1]]})
-
+                subcluster = self.adjacency_matrix[data_index][:, data_index]
                 g = nx.from_numpy_matrix(subcluster)
-                p = nx.spring_layout(g, pos=init_pos, k=self.strength)
+                if cluster_size > 5:
+                    init_pos = {}
+                    for j, n in enumerate(nodes[data_index]):
+                        init_pos.update({j: [n[0], n[1]]})
+                    k = 0.6 / cluster_size
+                    p = nx.spring_layout(g, pos=init_pos, k=k)
+                else:
+                    p = nx.spectral_layout(g)
 
-                tmp = cluster_size / total_cluster_size
+                # calculate plot coordinate
+                tmp_width = cluster_size / total_width
+                tmp_height = row_max_diameters[i] / total_heights
                 for k in p.keys():
-                    pos[data_index[k]] = p[k] * [tmp, 1 / len(arange_list)] + [accum_cluster_size, 1 / len(arange_list) * ind]
-                accum_cluster_size += tmp
+                    base = [accum_width * 1.5, accum_height * 1.5]
+                    pos[data_index[k]] = p[k] * [tmp_width, tmp_height] + base
+                accum_width += tmp_width
+            accum_height += tmp_height
+        return pos
 
-        # calc spring layout
-        g = nx.from_numpy_matrix(dummy_matrix)
-        pos = nx.spring_layout(g, pos=pos, k=self.strength)
+    def _get_position(self, nodes, edges):
+        # initialize adjacency_matrix
+        self._init_adjacency_matrix(nodes, edges)
+        # calculate connection from adjacency_matrix
+        connections = self._get_connections()
+        # calculate diameter list of clusters
+        diameters = self._get_diameters(connections)
 
-        plt.figure(figsize=(15, 10))
-        g = nx.from_numpy_matrix(adjacency_matrix)
-        nx.draw_networkx(g, pos=pos, node_size=node_sizes * 5, node_color=colors,
-                         edge_color=[colors[e[0]] for e in edges], with_labels=False)
+        # max diameter of cluster
+        max_diameter = max(diameters)
+
+        # arrangement of clusters
+        arrangement = self._get_row_arrangement(connections, diameters, max_diameter)
+
+        # calc row max List
+        row_max_diameters = [max(diameters[l]) for l in arrangement]
+
+        # calc coordinate
+        pos = self._calc_coordinate(nodes, connections, diameters,
+                                    max_diameter, arrangement,
+                                    row_max_diameters)
+        return pos
+
+    def _plot(self, nodes, edges, node_sizes, colors):
+        # calculate node position
+        pos = self._get_position(nodes, edges)
+
+        # make graph plot with self.adjacency_matrix
+        plt.figure(figsize=self.fig_size)
+        g = nx.from_numpy_matrix(self.adjacency_matrix)
+        nx.draw_networkx(g, pos=pos,
+                         node_size=node_sizes * self.node_size,
+                         node_color=colors,
+                         width=self.edge_width,
+                         edge_color=[colors[e[0]] for e in edges],
+                         with_labels=False)
         plt.axis("off")
 
     def show(self, nodes, edges, node_sizes, colors):
@@ -296,7 +326,7 @@ class PresenterResolver(object):
         self.presenter_list = [
             NormalPresenter(fig_size, node_size, edge_width),
             SpringPresenter(fig_size, node_size, edge_width, strength),
-            SpectralPresenter(fig_size, node_size, edge_width, strength)]
+            SpectralPresenter(fig_size, node_size, edge_width)]
 
     def resolve(self, mode):
         """Function of getting presenter.
