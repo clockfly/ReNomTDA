@@ -224,7 +224,7 @@ class Topology(object):
 
         self.edges = self.graph_util.calc_edges()
         if self.verbose == 1:
-            print("created {} edges.".format(self.edges.shape[0]))
+            print("created {} edges.".format(len(self.edges)))
 
     def color(self, target, color_method="mean", color_type="rgb",
               normalize=True):

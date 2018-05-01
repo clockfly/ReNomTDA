@@ -234,7 +234,9 @@ class SpectralPresenter(Presenter):
                 arrangement.append(row_cluster_index)
                 row_diameter_sum = 0
                 row_cluster_index = []
-        arrangement.append(row_cluster_index)
+
+        if len(row_cluster_index) > 0:
+            arrangement.append(row_cluster_index)
         return arrangement
 
     def _calc_coordinate(self, nodes, connections, diameters, max_diameter, arrangement, row_max_diameters):
