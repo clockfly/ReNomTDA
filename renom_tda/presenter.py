@@ -255,7 +255,7 @@ class SpectralPresenter(Presenter):
 
                 subcluster = self.adjacency_matrix[data_index][:, data_index]
                 g = nx.from_numpy_matrix(subcluster)
-                if cluster_size > 5:
+                if cluster_size > 3:
                     init_pos = {}
                     for j, n in enumerate(nodes[data_index]):
                         init_pos.update({j: [n[0], n[1]]})
