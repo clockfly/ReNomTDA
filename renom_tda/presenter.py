@@ -267,16 +267,16 @@ class SpectralPresenter(Presenter):
 
                 tmp = cluster_size / total_cluster_size
                 for k in p.keys():
-                    pos[data_index[k]] = p[k]*[tmp,1/len(arange_list)] + [accum_cluster_size, 1/len(arange_list)*ind]
+                    pos[data_index[k]] = p[k] * [tmp, 1 / len(arange_list)] + [accum_cluster_size, 1 / len(arange_list) * ind]
                 accum_cluster_size += tmp
 
         # calc spring layout
         g = nx.from_numpy_matrix(dummy_matrix)
         pos = nx.spring_layout(g, pos=pos, k=self.strength)
 
-        fig = plt.figure(figsize=(15,10))
+        plt.figure(figsize=(15, 10))
         g = nx.from_numpy_matrix(adjacency_matrix)
-        nx.draw_networkx(g, pos=pos, node_size=node_sizes*5, node_color=colors,
+        nx.draw_networkx(g, pos=pos, node_size=node_sizes * 5, node_color=colors,
                          edge_color=[colors[e[0]] for e in edges], with_labels=False)
         plt.axis("off")
 
