@@ -584,7 +584,7 @@ if __name__ == "__main__":
     lens = [L1Centrality(), GaussianDensity()]
     t.fit_transform(metric="euclidean", lens=lens)
 
-    t.map(resolution=10, overlap=1, eps=1, min_samples=1)
+    t.map(resolution=10, overlap=0.5, eps=0.1, min_samples=2)
 
     # target = [0., 1.]
     t.color(target, color_method="mean", color_type="rgb", normalize=True)
@@ -600,9 +600,9 @@ if __name__ == "__main__":
         "column": -1,
         "value": 1.0,
     }]
-    searched_node_index = t.search_from_values(search_dicts=search_dicts, target=target, search_type="and")
+    # searched_node_index = t.search_from_values(search_dicts=search_dicts, target=target, search_type="and")
     # t.export(file_name='test.csv', node_ids=searched_node_index)
-    t.show()
+    t.show(mode="spectral")
 
     # t.color_point_cloud(target=target)
     # t.search_point_cloud(search_dicts=search_dicts, target=target, search_type="or")

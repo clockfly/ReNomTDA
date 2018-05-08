@@ -73,7 +73,7 @@ class NormalPresenter(Presenter):
         plt.show()
 
     def save(self, file_name, nodes, edges, node_sizes, colors):
-        """Function of show figure.
+        """Function of save figure.
 
         Params:
             file_name: output file name.
@@ -159,7 +159,7 @@ class SpringPresenter(Presenter):
         plt.show()
 
     def save(self, file_name, nodes, edges, node_sizes, colors):
-        """Function of show figure.
+        """Function of save figure.
 
         Params:
             file_name: output file name.
@@ -240,6 +240,10 @@ class SpectralPresenter(Presenter):
         return arrangement
 
     def _calc_coordinate(self, nodes, connections, diameters, max_diameter, arrangement, row_max_diameters):
+        # set magic number
+        THRESHOLD_DIAMETER = 3
+        SPRING_CONSTANT = 0.6
+
         # calc coordinate
         pos = {}
         accum_height = 0
@@ -255,11 +259,12 @@ class SpectralPresenter(Presenter):
 
                 subcluster = self.adjacency_matrix[data_index][:, data_index]
                 g = nx.from_numpy_matrix(subcluster)
-                if cluster_size > 3:
+                if cluster_size > THRESHOLD_DIAMETER:
+                    # cluster diameter greater than threshold, use spring layout.
                     init_pos = {}
                     for j, n in enumerate(nodes[data_index]):
                         init_pos.update({j: [n[0], n[1]]})
-                    k = 0.6 / cluster_size
+                    k = SPRING_CONSTANT / cluster_size
                     p = nx.spring_layout(g, pos=init_pos, k=k)
                 else:
                     p = nx.spectral_layout(g)
@@ -313,10 +318,34 @@ class SpectralPresenter(Presenter):
         plt.axis("off")
 
     def show(self, nodes, edges, node_sizes, colors):
+        """Function of show figure.
+
+        Params:
+            nodes: array of node coordinates.
+
+            edges :array of edges.
+
+            node_sizes: array of node sizes.
+
+            colors: array of node colors.
+        """
         self._plot(nodes, edges, node_sizes, colors)
         plt.show()
 
     def save(self, file_name, nodes, edges, node_sizes, colors):
+        """Function of save figure.
+
+        Params:
+            file_name: output file name.
+
+            nodes: array of node coordinates.
+
+            edges :array of edges.
+
+            node_sizes: array of node sizes.
+
+            colors: array of node colors.
+        """
         self._plot(nodes, edges, node_sizes, colors)
         plt.savefig(file_name)
 
