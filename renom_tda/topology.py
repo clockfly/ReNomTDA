@@ -511,7 +511,7 @@ class Topology(object):
             y_train = target[self.train_index].astype(int)
 
             # fit & predict
-            clusterer.fit(x_train, y_train)
+            clusterer.fit(x_train, y_train.reshape(-1,))
             labels = np.zeros((self.point_cloud.shape[0], 1))
             labels[self.train_index] += y_train.reshape(-1, 1)
             labels[self.test_index] += clusterer.predict(x_test).reshape(-1, 1)
