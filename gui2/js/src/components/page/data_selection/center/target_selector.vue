@@ -2,7 +2,7 @@
   <div id='target_selector'>
     <div class='input-group fluid'>
       <label for='select_target'>Select Target</label>
-      <select id='select_target' class='select_target' v-model='target_name'>
+      <select id='select_target' class='select_target' v-model='target_index'>
         <option value=''>None</option>
         <option v-for='(item, index) in data_header' :key='index' :value='index'>{{ item }}</option>
       </select>
@@ -17,13 +17,13 @@ export default {
   name: 'TargetSelector',
   computed: {
     ...mapState(['data_header']),
-    target_name: {
+    target_index: {
       get: function() {
-        return this.$store.state.target_name;
+        return this.$store.state.target_index;
       },
       set: function(val) {
-        this.$store.commit('set_target_name', {
-          'target_name': val,
+        this.$store.commit('set_target_index', {
+          'target_index': val,
         });
       },
     },

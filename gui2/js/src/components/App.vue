@@ -2,25 +2,20 @@
   <div id="app">
     <appheader></appheader>
     <router-view></router-view>
-    <!-- <loadingmodal v-if="loading"></loadingmodal> -->
+    <loadingmodal v-if="$store.state.loading"></loadingmodal>
   </div>
 </template>
 
 <script>
-import AppHeader from '@/components/common/AppHeader.vue'
-// import LoadingModal from './common/LoadingModal.vue'
+import AppHeader from '@/components/common/app_header.vue'
+import LoadingModal from './common/loading_modal.vue'
 
 export default {
   name: "app",
   components:{
     'appheader': AppHeader,
-    // 'loadingmodal': LoadingModal
-  },
-  computed: {
-    loading(){
-        return this.$store.getters.loading_state;
-    }
-  },
+    'loadingmodal': LoadingModal
+  }
 }
 </script>
 

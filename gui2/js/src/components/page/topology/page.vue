@@ -5,28 +5,35 @@
     </div>
 
     <div class="canvas-area">
+      <topology-canvas></topology-canvas>
     </div>
 
     <div class="selected-node-detail-area">
       <select-table></select-table>
     </div>
+
+    <setting-modal v-if="$store.state.show_setting_modal"></setting-modal>
   </div>
 </template>
 
 <script>
 import CanvasHeader from './canvas/canvas_header.vue'
 import SelectTable from './select_data_table/select_table.vue'
+import SettingModal from './setting_modal/setting_modal.vue'
+import TopologyCanvas from './canvas/topology_canvas.vue'
 
 export default {
   name: "TopologyPage",
   components: {
     'canvas-header': CanvasHeader,
     'select-table': SelectTable,
+    'setting-modal': SettingModal,
+    'topology-canvas': TopologyCanvas
   },
   created: function() {
-    // if (this.$store.state.topology.file_id === 0) {
-    //   this.$router.push({ path: '/' });
-    // }
+    if (this.$store.state.file_id === '') {
+      this.$router.push({ path: '/' });
+    }
   }
 }
 </script>

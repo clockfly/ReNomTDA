@@ -13,6 +13,7 @@ export default {
     state.columns = payload.data.columns;
     state.data_header = payload.data.data_header;
     state.number_index = payload.data.number_index;
+    state.number_data = payload.data.number_data;
     state.hist_data = payload.data.hist_data;
 
     state.data_mean = payload.data.data_mean;
@@ -30,8 +31,10 @@ export default {
   set_select_column_name: function(state, payload) {
     state.selected_column = payload.name;
   },
-  set_target_name: function(state, payload) {
+  set_target_index: function(state, payload) {
     state.target_index = payload.target_index;
+    state.topologies[0].color_index = payload.target_index;
+    state.topologies[1].color_index = payload.target_index;
   },
 
   /*
@@ -39,5 +42,63 @@ export default {
   */
   set_setting_modal: function(state, payload) {
     state.show_setting_modal = payload.is_show;
+  },
+  set_algorithm: function(state, payload) {
+    state.topologies[payload.index].algorithm = payload.val;
+  },
+  set_clustering_algorithm: function(state, payload) {
+    state.topologies[payload.index].clustering_algorithm = payload.val;
+  },
+  set_mode: function(state, payload) {
+    state.topologies[payload.index].mode = payload.val;
+  },
+  set_k: function(state, payload) {
+    state.topologies[payload.index].k = payload.val;
+  },
+  set_eps: function(state, payload) {
+    state.topologies[payload.index].eps = payload.val;
+  },
+  set_min_samples: function(state, payload) {
+    state.topologies[payload.index].min_samples = payload.val;
+  },
+  set_train_size: function(state, payload) {
+    state.topologies[payload.index].train_size = payload.val;
+  },
+  set_resolution: function(state, payload) {
+    state.topologies[payload.index].resolution = payload.val;
+  },
+  set_overlap: function(state, payload) {
+    state.topologies[payload.index].overlap = payload.val;
+  },
+  set_create_result: function(state, payload) {
+    state.topologies[payload.index].hypercubes = payload.hypercubes;
+    state.topologies[payload.index].nodes = payload.nodes;
+    state.topologies[payload.index].edges = payload.edges;
+    state.topologies[payload.index].node_sizes = payload.node_sizes;
+    state.topologies[payload.index].colors = payload.colors;
+    state.topologies[payload.index].train_index = payload.train_index;
+  },
+  set_color_index: function(state, payload) {
+    state.topologies[payload.index].color_index = payload.val;
+  },
+  reset_topology: function(state, payload) {
+    for(let t of state.topologies) {
+      t.nodes = [];
+      t.edges = [];
+    }
+  },
+  set_click_node: function(state, payload) {
+    const ids = state.topologies[payload.index].hypercubes[payload.click_node_index];
+    let a = new Set(state.click_node_data_ids);
+    let b = new Set(ids);
+    let union = new Set([...a, ...b]);
+    state.click_node_data_ids = [...union];
+  },
+  remove_click_node: function(state, payload) {
+    const ids = state.topologies[payload.index].hypercubes[payload.click_node_index];
+    let a = new Set(state.click_node_data_ids);
+    let b = new Set(ids);
+    let diff = new Set([...a].filter(x => !b.has(x)));
+    state.click_node_data_ids = [...diff];
   }
 }
