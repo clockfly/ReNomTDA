@@ -265,7 +265,7 @@ def create():
                 neighbors.KNeighborsClassifier(n_neighbors=k)
             ]
             topology.supervised_clustering_point_cloud(clusterer=clusters[clustering_algorithm],
-                target=target, train_size=train_size)
+                                                       target=target, train_size=train_size)
 
             if target_index != '':
                 topology.number_data = _concat_target(topology.number_data, target, int(target_index))
@@ -413,7 +413,7 @@ def search():
                 neighbors.KNeighborsClassifier(n_neighbors=k)
             ]
             topology.supervised_clustering_point_cloud(clusterer=clusters[clustering_algorithm],
-                target=target, train_size=train_size)
+                                                       target=target, train_size=train_size)
             if len(search_conditions) > 0:
                 topology.search_point_cloud(search_dicts=search_conditions, search_type=search_type)
 
