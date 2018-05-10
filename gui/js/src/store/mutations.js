@@ -12,9 +12,17 @@ export default {
     state.row = payload.data.row;
     state.columns = payload.data.columns;
     state.data_header = payload.data.data_header;
+    state.file_data = payload.data.file_data;
+
     state.number_index = payload.data.number_index;
+    state.number_columns = payload.data.number_columns;
+    state.text_columns = payload.data.text_columns;
+
     state.number_data = payload.data.number_data;
+    state.text_data = payload.data.text_data;
+
     state.hist_data = payload.data.hist_data;
+    state.topo_hist = payload.data.topo_hist;
 
     state.data_mean = payload.data.data_mean;
     state.data_var = payload.data.data_var;
@@ -42,6 +50,9 @@ export default {
   */
   set_setting_modal: function(state, payload) {
     state.show_setting_modal = payload.is_show;
+  },
+  set_search_modal: function(state, payload) {
+    state.show_search_modal = payload.is_show;
   },
   set_algorithm: function(state, payload) {
     state.topologies[payload.index].algorithm = payload.val;
@@ -72,6 +83,7 @@ export default {
   },
   set_create_result: function(state, payload) {
     state.topologies[payload.index].hypercubes = payload.hypercubes;
+    state.topologies[payload.index].point_cloud = payload.point_cloud;
     state.topologies[payload.index].nodes = payload.nodes;
     state.topologies[payload.index].edges = payload.edges;
     state.topologies[payload.index].node_sizes = payload.node_sizes;
@@ -82,6 +94,7 @@ export default {
     state.topologies[payload.index].color_index = payload.val;
   },
   reset_topology: function(state, payload) {
+    state.click_node_data_ids = [];
     for(let t of state.topologies) {
       t.nodes = [];
       t.edges = [];
@@ -100,5 +113,11 @@ export default {
     let b = new Set(ids);
     let diff = new Set([...a].filter(x => !b.has(x)));
     state.click_node_data_ids = [...diff];
+  },
+  set_search_color: function(state, payload) {
+    state.topologies[payload.index].colors = payload.colors;
+  },
+  set_search_type: function(state, payload) {
+    state.search_type = payload.val;
   }
 }

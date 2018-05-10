@@ -3,13 +3,15 @@
     <div class="input-group vertical">
       <label for="color">colored by</label>
       <select v-model="color_index">
-        <option v-for="(v,index) in $store.state.number_index" :value="index">{{$store.state.data_header[index]}}</option>
+        <option v-for="(v,index) in number_columns" :value="index">{{v}}</option>
       </select>
     </div>
   </div>
 </template>
 
 <script>
+import {mapState} from 'vuex'
+
 export default {
   name: "ColorSelector",
   props: {
@@ -19,6 +21,7 @@ export default {
     }
   },
   computed: {
+    ...mapState(['number_index', 'number_columns']),
     color_index: {
       get: function() {
         return this.$store.state.topologies[this.id].color_index;

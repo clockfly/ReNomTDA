@@ -3,9 +3,8 @@ export default {
   files: {},
   // selected file id
   file_id: '',
-
-  // selected target column index
-  target_index: '',
+  // loading flag
+  loading: false,
 
   // highlighted column name
   selected_column: undefined,
@@ -16,9 +15,9 @@ export default {
 
   // file header
   data_header: [],
+
   // number columns index
   number_index: undefined,
-  number_data: undefined,
 
   // histogram data
   hist_data: undefined,
@@ -33,12 +32,21 @@ export default {
   data_75percentile: undefined,
   data_max: undefined,
 
-  // loading flag
-  loading: false,
-
   /*
   topology pages
   */
+  // selected target column index
+  target_index: '',
+
+  // file_data
+  file_data: undefined,
+
+  // column_data
+  number_columns: undefined,
+  text_columns: undefined,
+
+  // topology hist
+  topo_hist: undefined,
 
   // algorithms
   algorithms: ["PCA", "TSNE", "Isomap", "None"],
@@ -58,7 +66,6 @@ export default {
     resolution: 10,
     overlap: 0.5,
     color_index: 0,
-    number_data: [],
     hypercubes: [],
     point_cloud: [],
     nodes: [],
@@ -78,7 +85,6 @@ export default {
     resolution: 10,
     overlap: 0.5,
     color_index: 0,
-    number_data: [],
     hypercubes: [],
     point_cloud: [],
     nodes: [],
@@ -89,11 +95,23 @@ export default {
     test_index: [],
   }],
 
+  // search conditions
+  search_type: "and",
+  search_conditions: [{
+    "data_type": "number",
+    "operator": "=",
+    "column": 0,
+    "value": 0,
+  }],
+
   // click node
   click_node_data_ids: [],
 
   // show topology setting modal
   show_setting_modal: false,
+
+  // show search condition modal
+  show_search_modal: false,
 
   // spring model
   spring: false,

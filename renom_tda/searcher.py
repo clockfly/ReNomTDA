@@ -57,11 +57,11 @@ class NumberSearcher(Searcher):
         """
         index = []
         if operator == "=":
-            index.extend(np.where(self.data[:, column] == value)[0])
+            index.extend(np.where(self.data[:, column] == float(value))[0])
         elif operator == ">":
-            index.extend(np.where(self.data[:, column] >= value)[0])
+            index.extend(np.where(self.data[:, column] >= float(value))[0])
         elif operator == "<":
-            index.extend(np.where(self.data[:, column] <= value)[0])
+            index.extend(np.where(self.data[:, column] <= float(value))[0])
         return index
 
 

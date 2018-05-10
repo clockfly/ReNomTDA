@@ -18,7 +18,7 @@ export default {
       return this.$store.state.topologies[this.id].color_index;
     },
     file_data() {
-      return this.$store.state.hist_data;
+      return this.$store.state.topo_hist;
     },
   },
   watch: {

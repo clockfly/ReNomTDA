@@ -15,12 +15,19 @@ export default {
     color_index() {
       return this.$store.state.topologies[this.id].color_index;
     },
+    colors() {
+      return this.$store.state.topologies[this.id].colors[this.topology.color_index];
+    },
     topology() {
       return this.$store.state.topologies[this.id];
     }
   },
   watch: {
     color_index: function() {
+      this.reset_canvas();
+      this.draw_graph();
+    },
+    colors: function() {
       this.reset_canvas();
       this.draw_graph();
     }
@@ -37,7 +44,7 @@ export default {
       const nodes = this.topology.nodes;
       const sizes = this.topology.node_sizes;
       const edges = this.topology.edges;
-      const colors = this.topology.colors[this.topology.color_index];
+      const colors = this.colors;
       const train_index = this.topology.train_index;
 
       const store = this.$store;

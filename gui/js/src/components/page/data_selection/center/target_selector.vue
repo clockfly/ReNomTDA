@@ -4,7 +4,7 @@
       <label for='select_target'>Select Target</label>
       <select id='select_target' class='select_target' v-model='target_index'>
         <option value=''>None</option>
-        <option v-for='(item, index) in data_header' :key='index' :value='index'>{{ item }}</option>
+        <option v-for='(item, index) in number_columns' :key='index' :value='index'>{{ item }}</option>
       </select>
     </div>
   </div>
@@ -16,7 +16,7 @@ import {mapState} from 'vuex'
 export default {
   name: 'TargetSelector',
   computed: {
-    ...mapState(['data_header']),
+    ...mapState(['number_index', 'number_columns']),
     target_index: {
       get: function() {
         return this.$store.state.target_index;
