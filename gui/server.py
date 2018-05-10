@@ -211,7 +211,6 @@ def create():
         min_samples = int(request.params.min_samples)
         resolution = int(request.params.resolution)
         overlap = float(request.params.overlap)
-        color_index = int(request.params.color_index)
 
         # get file name
         file_name = _get_file_name_from_id(file_id)
@@ -265,7 +264,7 @@ def create():
             clusters = [
                 neighbors.KNeighborsClassifier(n_neighbors=k)
             ]
-            topology.supervised_clustering_point_cloud(clusterer=clusters[clustering_algorithm], target=target)
+            topology.supervised_clustering_point_cloud(clusterer=clusters[clustering_algorithm], target=target, train_size=train_size)
 
             if target_index != '':
                 topology.number_data = _concat_target(topology.number_data, target, int(target_index))
@@ -290,7 +289,7 @@ def create():
                 colors.append(topology.hex_colors)
 
         if mode < 3:
-            hypercubes = np.arange(len(topology.point_cloud)).reshape(-1,1).tolist()
+            hypercubes = np.arange(len(topology.point_cloud)).reshape(-1, 1).tolist()
             nodes = topology.point_cloud.tolist()
             edges = []
             node_sizes = [MIN_NODE_SIZE] * len(topology.point_cloud)
@@ -325,7 +324,7 @@ def create():
 def export():
     try:
         file_id = request.params.file_id
-        file_name = get_file_name_from_id(file_id)
+        file_name = _get_file_name_from_id(file_id)
         file_path = os.path.join(DATA_DIR, file_name)
 
         # get output filename from request
@@ -363,6 +362,10 @@ def search():
         target_index = data["target_index"]
         mode = int(data["mode"])
         clustering_algorithm = int(data["clustering_algorithm"])
+        train_size = float(request.params.train_size)
+        k = int(request.params.k)
+        eps = float(request.params.eps)
+        min_samples = int(request.params.min_samples)
         topology.point_cloud = np.array(data["point_cloud"])
         hypercubes = data["hypercubes"]
         topology.hypercubes = _convert_array_to_hypercubes(hypercubes)
@@ -408,7 +411,7 @@ def search():
             clusters = [
                 neighbors.KNeighborsClassifier(n_neighbors=k)
             ]
-            topology.supervised_clustering_point_cloud(clusterer=clusters[clustering_algorithm], target=target)
+            topology.supervised_clustering_point_cloud(clusterer=clusters[clustering_algorithm], target=target, train_size=train_size)
             if len(search_conditions) > 0:
                 topology.search_point_cloud(search_dicts=search_conditions, search_type=search_type)
 
