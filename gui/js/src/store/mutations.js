@@ -81,9 +81,11 @@ export default {
   set_overlap: function(state, payload) {
     state.topologies[payload.index].overlap = payload.val;
   },
+  set_reduction_result: function(state, payload) {
+    state.topologies[payload.index].point_cloud = payload.point_cloud;
+  },
   set_create_result: function(state, payload) {
     state.topologies[payload.index].hypercubes = payload.hypercubes;
-    state.topologies[payload.index].point_cloud = payload.point_cloud;
     state.topologies[payload.index].nodes = payload.nodes;
     state.topologies[payload.index].edges = payload.edges;
     state.topologies[payload.index].node_sizes = payload.node_sizes;

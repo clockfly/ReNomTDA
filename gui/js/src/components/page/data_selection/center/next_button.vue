@@ -1,6 +1,8 @@
 <template>
   <div id='next_button'>
-    <button @click='go_next'>
+    <button
+      :disabled="$store.state.data_header.length == 0"
+      @click='go_next'>
       Next
     </button>
   </div>
@@ -11,7 +13,12 @@ export default {
   name: 'NextButton',
   methods: {
     go_next: function() {
-      this.$router.push({ path: '/topology' });
+      if(this.$store.state.file_data) {
+        this.$router.push({ path: '/topology' });
+      }else{
+        alert("File is not loaded.");
+        return;
+      }
     },
   }
 }

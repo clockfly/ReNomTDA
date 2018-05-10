@@ -7,10 +7,15 @@
     </div>
 
     <div class="search-button-area">
-      <button class="show-search-button" @click="showSearchModal">
+      <button class="show-search-button"
+        :disabled="$store.state.topologies[0].point_cloud.length == 0"
+        @click="showSearchModal">
         search settings
       </button>
-      <button class="search-reset-button" @click="resetSearch">
+
+      <button class="search-reset-button"
+        :disabled="$store.state.topologies[0].point_cloud.length == 0"
+        @click="resetSearch">
         clear search
       </button>
     </div>

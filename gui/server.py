@@ -31,9 +31,6 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 MIN_NODE_SIZE = 3.0
 MAX_NODE_SIZE = 15.0
 
-DATA_TYPE = ["number", "text"]
-OPERATORS = [["=", ">", "<"], ["=", "like"]]
-
 REDUCTIONS = [
     PCA(components=[0, 1]),
     TSNE(components=[0, 1]),
@@ -45,7 +42,6 @@ def create_response(body):
     # create json response
     r = HTTPResponse(status=200, body=body)
     r.set_header('Content-Type', 'application/json')
-    r.set_header('Cache-Control', 'no-cache')
     return r
 
 
@@ -196,21 +192,14 @@ def _concat_target(data, target, target_index):
     ret = np.concatenate([data[:, :target_index], target.reshape(-1, 1), data[:, target_index:]], axis=1)
     return ret
 
-@route("/api/create", method="GET")
-def create():
+
+@route("/api/reduction", method="GET")
+def reduction():
     try:
         # get request params
         file_id = request.params.file_id
         target_index = request.params.target_index
         algorithm = int(request.params.algorithm)
-        mode = int(request.params.mode)
-        clustering_algorithm = int(request.params.clustering_algorithm)
-        train_size = float(request.params.train_size)
-        k = int(request.params.k)
-        eps = float(request.params.eps)
-        min_samples = int(request.params.min_samples)
-        resolution = int(request.params.resolution)
-        overlap = float(request.params.overlap)
 
         # get file name
         file_name = _get_file_name_from_id(file_id)
@@ -222,20 +211,57 @@ def create():
         topology.load(loader=loader, standardize=True)
 
         # If target index isn't exists, use all data to calculate
-        if target_index == '':
-            target = topology.number_data[:, 0]
-        else:
+        if target_index != '':
             topology.number_data, target = _split_target(topology.number_data, int(target_index))
 
         # transform & scaling data
         scaler = preprocessing.MinMaxScaler(feature_range=(0.05, 0.95))
         topology.fit_transform(lens=[REDUCTIONS[algorithm]], scaler=scaler)
 
+        body = {
+            "point_cloud": topology.point_cloud.tolist(),
+        }
+        r = create_response(body)
+        r.set_header('Cache-Control', 'max-age=86400')
+        return r
+
+    except Exception as e:
+        body = json.dumps({"error_msg": e.args[0]})
+        r = create_response(body)
+        return r
+
+
+@route("/api/create", method="POST")
+def create():
+    try:
+        # get request params
+        data = json.loads(request.params.data)
+
+        file_id = int(data["file_id"])
+        file_name = _get_file_name_from_id(file_id)
+        file_path = os.path.join(DATA_DIR, file_name)
+
+        # create topology instance
+        topology = Topology(verbose=0)
+        loader = CSVLoader(file_path)
+        topology.load(loader=loader, standardize=True)
+
+        target_index = data["target_index"]
+        mode = int(data["mode"])
+        clustering_algorithm = int(data["clustering_algorithm"])
+        train_size = float(data["train_size"])
+        k = int(data["k"])
+        eps = float(data["eps"])
+        min_samples = int(data["min_samples"])
+        resolution = int(data["resolution"])
+        overlap = float(data["overlap"])
+        color_index = int(data["color_index"])
+        topology.point_cloud = np.array(data["point_cloud"])
+
         if mode == 0:
             # scatter plot
             if target_index != '':
                 topology.number_data = _concat_target(topology.number_data, target, int(target_index))
-
             colors = []
             for i in range(topology.number_data.shape[1]):
                 t = topology.number_data[:, i]
@@ -305,7 +331,6 @@ def create():
 
         body = {
             "hypercubes": hypercubes,
-            "point_cloud": topology.point_cloud.tolist(),
             "nodes": nodes,
             "edges": edges,
             "node_sizes": node_sizes,
@@ -315,7 +340,6 @@ def create():
         r = create_response(body)
         return r
     except Exception as e:
-        print(e)
         body = json.dumps({"error_msg": e.args[0]})
         r = create_response(body)
         return r
@@ -339,7 +363,6 @@ def export():
         out_file_path = os.path.join(DATA_DIR, out_file_name)
         pdata.iloc[click_node_data_ids].to_csv(out_file_path, index=False)
     except Exception as e:
-        print(e)
         body = json.dumps({"error_msg": e.args[0]})
         r = create_response(body)
         return r
@@ -443,7 +466,6 @@ def search():
         return r
 
     except Exception as e:
-        print(e)
         body = json.dumps({"error_msg": e.args[0]})
         r = create_response(body)
         return r
@@ -477,6 +499,7 @@ if __name__ == '__main__':
 
     if not os.path.isdir(DATA_DIR):
         os.makedirs(DATA_DIR)
+    init_db()
 
     wsgiapp = default_app()
     httpd = wsgi_server.Server(wsgiapp, host=args.host, port=int(args.port))

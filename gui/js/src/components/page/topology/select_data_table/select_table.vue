@@ -19,7 +19,9 @@
     </div>
 
     <div class="export-button-area">
-      <button class="export-button" @click="exportData">
+      <button class="export-button"
+        :disabled="$store.state.click_node_data_ids.length == 0"
+        @click="exportData">
         <i class="fa fa-pencil-square-o" aria-hidden="true"></i> export
       </button>
     </div>
@@ -49,14 +51,17 @@ export default {
   $table_item_height: 12px;
   $table_item_padding: 4px;
   $table_font_size: 9px;
+  $border-color: #cccccc;
 
   width: 100%;
   height: 100%;
+  border-top: 1px solid $border-color;
 
   .table-area {
     width: 95%;
     height: 80%;
     margin: 0 auto;
+    margin-top: 10px;
     overflow: auto;
     .table-header {
       height: $table_item_height;

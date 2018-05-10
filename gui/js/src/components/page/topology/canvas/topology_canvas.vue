@@ -4,7 +4,7 @@
       <div v-for="(topology, index) in $store.state.topologies"
         :class="'canvas'+index">
         <d3-canvas :id="index" v-if="topology.nodes.length > 0"></d3-canvas>
-        <div class="histogram-area">
+        <div class="histogram-area" v-if="$store.state.file_id != ''">
           <histogram :id="index"></histogram>
           <color-selector :id="index"></color-selector>
         </div>
