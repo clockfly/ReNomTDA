@@ -255,13 +255,10 @@ def create():
         min_samples = int(data["min_samples"])
         resolution = int(data["resolution"])
         overlap = float(data["overlap"])
-        color_index = int(data["color_index"])
         topology.point_cloud = np.array(data["point_cloud"])
 
         if mode == 0:
             # scatter plot
-            if target_index != '':
-                topology.number_data = _concat_target(topology.number_data, target, int(target_index))
             colors = []
             for i in range(topology.number_data.shape[1]):
                 t = topology.number_data[:, i]
@@ -272,6 +269,10 @@ def create():
 
         elif mode == 1:
             # unsupervised_clusterings
+            # If target index isn't exists, use all data to calculate
+            if target_index != '':
+                topology.number_data, target = _split_target(topology.number_data, int(target_index))
+
             clusters = [
                 cluster.KMeans(n_clusters=k),
                 cluster.DBSCAN(eps=eps, min_samples=min_samples)
@@ -287,6 +288,10 @@ def create():
 
         elif mode == 2:
             # supervised_clusterings
+            # If target index isn't exists, use all data to calculate
+            if target_index != '':
+                topology.number_data, target = _split_target(topology.number_data, int(target_index))
+
             clusters = [
                 neighbors.KNeighborsClassifier(n_neighbors=k)
             ]
@@ -303,9 +308,6 @@ def create():
         elif mode == 3:
             # tda
             topology.map(resolution=resolution, overlap=overlap, eps=eps, min_samples=min_samples)
-
-            if target_index != '':
-                topology.number_data = _concat_target(topology.number_data, target, int(target_index))
 
             colors = []
             for i in range(topology.number_data.shape[1]):
@@ -386,10 +388,10 @@ def search():
         target_index = data["target_index"]
         mode = int(data["mode"])
         clustering_algorithm = int(data["clustering_algorithm"])
-        train_size = float(request.params.train_size)
-        k = int(request.params.k)
-        eps = float(request.params.eps)
-        min_samples = int(request.params.min_samples)
+        train_size = float(data["train_size"])
+        k = int(data["k"])
+        eps = float(data["eps"])
+        min_samples = int(data["min_samples"])
         topology.point_cloud = np.array(data["point_cloud"])
         hypercubes = data["hypercubes"]
         topology.hypercubes = _convert_array_to_hypercubes(hypercubes)
@@ -397,7 +399,7 @@ def search():
         topology.edges = np.array(data["edges"])
         search_type = data["search_type"]
         search_conditions = data["search_conditions"]
-
+        print(len(search_conditions))
         colors = []
         if mode == 0:
             for i in range(topology.number_data.shape[1]):
@@ -411,14 +413,17 @@ def search():
         elif mode == 1:
             # unsupervised_clusterings
             if target_index != '':
-                target = topology.number_data[:, int(target_index)]
-                topology.number_data[:, int(target_index)] = 0
+                topology.number_data, target = _split_target(topology.number_data, int(target_index))
 
             clusters = [
                 cluster.KMeans(n_clusters=k),
                 cluster.DBSCAN(eps=eps, min_samples=min_samples)
             ]
             topology.unsupervised_clustering_point_cloud(clusterer=clusters[clustering_algorithm])
+
+            if target_index != '':
+                topology.number_data = _concat_target(topology.number_data, target, int(target_index))
+
             if len(search_conditions) > 0:
                 topology.search_point_cloud(search_dicts=search_conditions, search_type=search_type)
 
@@ -429,14 +434,17 @@ def search():
         elif mode == 2:
             # supervised_clusterings
             if target_index != '':
-                target = topology.number_data[:, int(target_index)]
-                topology.number_data[:, int(target_index)] = 0
+                topology.number_data, target = _split_target(topology.number_data, int(target_index))
 
             clusters = [
                 neighbors.KNeighborsClassifier(n_neighbors=k)
             ]
             topology.supervised_clustering_point_cloud(clusterer=clusters[clustering_algorithm],
                                                        target=target, train_size=train_size)
+
+            if target_index != '':
+                topology.number_data = _concat_target(topology.number_data, target, int(target_index))
+
             if len(search_conditions) > 0:
                 topology.search_point_cloud(search_dicts=search_conditions, search_type=search_type)
 
