@@ -128,12 +128,12 @@ export default {
           context.commit('set_loading', {'loading': false});
           return;
         }
+        context.commit('set_loading', {'loading': false});
       });
-
-    context.commit('set_loading', {'loading': false});
   },
   search(context, payload) {
     context.commit('set_loading', {'loading': true});
+    context.commit("set_search_modal", {"is_show": false});
 
     let fd = new FormData();
     let dict = {
@@ -166,9 +166,7 @@ export default {
           'index': payload.index,
           'colors': response.data.colors,
         });
+        context.commit('set_loading', {'loading': false});
       });
-
-    context.commit("set_search_modal", {"is_show": false});
-    context.commit('set_loading', {'loading': false});
   }
 }

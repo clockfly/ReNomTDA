@@ -2,7 +2,7 @@
   <div class="color-selector">
     <div class="input-group vertical">
       <label for="color">colored by</label>
-      <select v-model="color_index">
+      <select class="padding-left-8" v-model="color_index">
         <option v-for="(v,index) in number_columns" :value="index">{{v}}</option>
       </select>
     </div>

@@ -3,21 +3,23 @@
     <div class="modal-param">
       <div class="input-group vertical">
         <label for="algorithm">Dimension Reduction</label>
-        <select v-model="algorithm">
+        <select class="padding-left-8" v-model="algorithm">
           <option v-for="(v, index) in $store.state.algorithms"
             :value="index">{{v}}</option>
         </select>
       </div>
 
-      <div class="input-group vertical">
+      <div class="input-group vertical analysis-mode margin-top-16">
         <label for="mode">Analysis Mode</label>
-        <select v-model="mode">
+        <select class="padding-left-8" v-model="mode">
           <option v-for="(v, index) in $store.state.modes"
             :value="index">{{v}}</option>
         </select>
       </div>
 
-      <component :is="param_components[mode]" :columnIndex="columnIndex"></component>
+      <div class="margin-top-16">
+        <component :is="param_components[mode]" :columnIndex="columnIndex"></component>
+      </div>
     </div>
   </div>
 </template>
@@ -77,5 +79,11 @@ export default {
 .common-params {
   display: flex;
   flex-direction: column;
+
+  width: 100%;
+
+  .modal-param {
+    width: 50%;
+  }
 }
 </style>

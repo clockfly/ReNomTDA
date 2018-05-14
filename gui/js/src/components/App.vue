@@ -80,17 +80,30 @@ input[type='number']::-webkit-inner-spin-button {
   margin-left: auto;
 }
 @for $i from 1 through 15 {
-  .margin_left_#{$i*4} {
+  .margin-left-#{$i*4} {
     margin-left: 4px * $i;
   }
-  .margin_right_#{$i*4} {
+  .margin-right-#{$i*4} {
     margin-right: 4px * $i;
   }
-  .margin_top_#{$i*4} {
+  .margin-top-#{$i*4} {
     margin-top: 4px * $i;
   }
-  .margin_bottom_#{$i*4} {
+  .margin-bottom-#{$i*4} {
     margin-bottom: 4px * $i;
+  }
+
+  .padding-left-#{$i*4} {
+    padding-left: 4px * $i;
+  }
+  .padding-right-#{$i*4} {
+    padding-right: 4px * $i;
+  }
+  .padding-top-#{$i*4} {
+    padding-top: 4px * $i;
+  }
+  .padding-bottom-#{$i*4} {
+    padding-bottom: 4px * $i;
   }
 }
 </style>

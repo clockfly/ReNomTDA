@@ -6,54 +6,56 @@
         Search
       </div>
 
-      <div class="search_type">
-        <div class='input-group'>
-          <select class='search-type' v-model='search_type'>
+      <div class="search-type-area margin-top-16">
+        <div class="input-group vertical">
+          <label for="mode">Search Type</label>
+          <select class='search-type-selector padding-left-8' v-model='search_type'>
             <option v-for='(type, index) in search_types'
               :key='index' :value='type'>{{ type }}</option>
           </select>
         </div>
       </div>
 
-      <div class="modal-param-area">
-        <div v-for="(condition, i) in search_conditions" :key="i">
-          <div class='input-group'>
-            <select class='data-type' v-model='condition["data_type"]'>
+      <div class="modal-param-area margin-top-16">
+        <div v-for="(condition, i) in search_conditions" :key="i"
+          class="condition-row">
+          <div class='input-group margin-right-8'>
+            <select class='data-type padding-left-8' v-model='condition["data_type"]'>
               <option v-for='(type, index) in data_types'
                 :key='index' :value='type'>{{ type }}</option>
             </select>
           </div>
 
-          <div class='input-group'>
-            <select class='data-type' v-model='condition["column"]'>
+          <div class='input-group margin-right-8'>
+            <select class='data-type padding-left-8' v-model='condition["column"]'>
               <option v-for='(col, index) in columns[condition["data_type"]]'
                 :key='index' :value='index'>{{ col }}</option>
             </select>
           </div>
 
-          <div class='input-group'>
-            <select class='operator' v-model='condition["operator"]'>
+          <div class='input-group margin-right-8'>
+            <select class='operator padding-left-8' v-model='condition["operator"]'>
               <option v-for='(op, index) in operators[condition["data_type"]]'
                 :key='index' :value='op'>{{ op }}</option>
             </select>
           </div>
 
           <input type="number" step="0.01"
-            class="search-value" v-model='condition["value"]' />
+            class="search-value"
+            v-model='condition["value"]' />
 
-          <button class="remove-button" @click="removeCondition(i)">
+          <button class="remove-button margin-left-8"
+            @click="removeCondition(i)">
             <i class="fa fa-minus" aria-hidden="true"></i>
           </button>
-
-          <button v-if="i == search_conditions.length-1"
-            class="add-button" @click="addCondition(i)">
-            <i class="fa fa-plus" aria-hidden="true"></i>
-          </button>
-          <br>
         </div>
+
+        <button class="add-button margin-top-8" @click="addCondition()">
+          <i class="fa fa-plus" aria-hidden="true"></i>
+        </button>
       </div>
 
-      <div class="modal-button-area">
+      <div class="modal-button-area margin-top-16">
         <button class="search-button" @click="search">
           <i class="fa fa-search" aria-hidden="true"></i> Search
         </button>
@@ -114,7 +116,7 @@ export default {
         "conditions": this.search_conditions
       });
     },
-    addCondition: function(i) {
+    addCondition: function() {
       this.search_conditions.push({
         "data_type": "number",
         "operator": "=",
@@ -136,8 +138,8 @@ export default {
   $modal-color: #000000;
   $modal-opacity: 0.5;
 
-  $modal-content-width: 80%;
-  $modal-content-height: 90%;
+  $modal-content-width: 60%;
+  $modal-content-height: 80%;
   $modal-content-bg-color: #fefefe;
   $modal-content-padding: 32px;
 
@@ -172,8 +174,14 @@ export default {
       font-size: $modal-title-font-size;
     }
 
+    .search-type-area {
+      width: 20%;
+    }
+
     .modal-param-area {
-      display: flex;
+      .condition-row {
+        display: flex;
+      }
     }
   }
 }

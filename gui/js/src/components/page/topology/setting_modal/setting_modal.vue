@@ -6,14 +6,14 @@
         Topology Settings
       </div>
 
-      <div class="modal-param-area">
+      <div class="modal-param-area margin-top-16">
         <common-params v-for="(t, index) in $store.state.topologies"
-          :key="index" :columnIndex="index"></common-params>
+          :key="index" :columnIndex="index" class="column-pararm-area"></common-params>
       </div>
 
-      <div class="modal-button-area">
+      <div class="modal-button-area margin-top-32">
         <button class="run-button" @click="run">
-          <i class="fa fa-play" aria-hidden="true"></i>RUN
+          <i class="fa fa-play" aria-hidden="true"></i> RUN
         </button>
 
         <button class="cancel-button" @click="hideModal">
@@ -51,8 +51,8 @@ export default {
   $modal-color: #000000;
   $modal-opacity: 0.5;
 
-  $modal-content-width: 80%;
-  $modal-content-height: 90%;
+  $modal-content-width: 60%;
+  $modal-content-height: 80%;
   $modal-content-bg-color: #fefefe;
   $modal-content-padding: 32px;
 
@@ -89,6 +89,11 @@ export default {
 
     .modal-param-area {
       display: flex;
+      width: 100%;
+
+      .column-pararm-area {
+        width: 50%;
+      }
     }
   }
 }

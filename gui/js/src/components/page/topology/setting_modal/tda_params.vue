@@ -1,6 +1,9 @@
 <template>
   <div id="tda-params">
+    <div class="mapping-params">Mapping Params</div>
     <mapping-params :columnIndex="columnIndex"></mapping-params>
+
+    <div class="clustering-params">Clustering Params</div>
     <dbscan :columnIndex="columnIndex"></dbscan>
   </div>
 </template>
@@ -26,5 +29,11 @@ export default {
 
 <style lang="scss" scoped>
 #tda-params {
+  .mapping-params {
+    margin-top: 16px;
+  }
+  .clustering-params {
+    margin-top: 16px;
+  }
 }
 </style>

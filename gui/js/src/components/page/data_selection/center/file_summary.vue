@@ -1,8 +1,8 @@
 <template>
   <div id='file_summary'>
     <span class='summary_title'>File Summary</span>
-    <span class='summary_value'>Column {{ columns }}</span>
-    <span class='summary_value'>Row {{ row }}</span>
+    <span class='summary_value margin-left-12'>Column {{ columns }}</span>
+    <span class='summary_value margin-left-12'>Row {{ row }}</span>
   </div>
 </template>
 
@@ -21,7 +21,6 @@ export default {
   line-height: 26px;
 
   .summary_value {
-    margin-left: 12px;
     padding-left: 12px;
     border-left: 1px solid #ccc;
   }

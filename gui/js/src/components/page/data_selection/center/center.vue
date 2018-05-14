@@ -1,17 +1,17 @@
 <template>
   <div id='center'>
-    <div class='file_summary_area margin_top_16'>
-      <file-loader class='margin_left_48'></file-loader>
-      <file-summary class='margin_left_48'></file-summary>
+    <div class='file_summary_area margin-top-16'>
+      <file-loader class='margin-left-48'></file-loader>
+      <file-summary class='margin-left-48'></file-summary>
     </div>
 
-    <div class='data_table_area margin_top_16'>
+    <div class='data_table_area margin-top-16'>
       <data-table></data-table>
     </div>
 
-    <div class='data_export_area margin_top_16 margin_bottom_16'>
-      <next-button class='margin_right_48'></next-button>
-      <target-selector class='margin_right_48'></target-selector>
+    <div class='data_export_area margin-top-16 margin-bottom-16'>
+      <next-button class='margin-right-48'></next-button>
+      <target-selector class='margin-right-48'></target-selector>
     </div>
   </div>
 </template>
@@ -35,7 +35,7 @@ export default {
 }
 </script>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 #center {
   $header-height: 44px;
   $input-line-height: 24px;

@@ -399,7 +399,7 @@ def search():
         topology.edges = np.array(data["edges"])
         search_type = data["search_type"]
         search_conditions = data["search_conditions"]
-        print(len(search_conditions))
+
         colors = []
         if mode == 0:
             for i in range(topology.number_data.shape[1]):

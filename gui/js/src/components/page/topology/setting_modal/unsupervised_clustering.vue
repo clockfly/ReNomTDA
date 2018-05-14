@@ -2,7 +2,7 @@
   <div id="unsupervised-clustering">
     <div class="input-group vertical">
       <label for="mode">Unsupervised Clustering</label>
-      <select v-model="algorithm">
+      <select class="padding-left-8" v-model="algorithm">
         <option v-for="(v, index) in clusterings"
           :value="index">{{v}}</option>
       </select>
