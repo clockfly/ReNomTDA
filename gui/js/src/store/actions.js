@@ -5,22 +5,34 @@ export default {
   data selection page
   */
   load_files(context, payload) {
-    context.commit('set_loading', {'loading': true});
+    context.commit('set_loading', {
+      'index': 0,
+      'loading': true,
+    });
     return axios.get('/api/files')
       .then(function(response){
         if(response.data.error_msg) {
           alert(response.data.error_msg);
-          context.commit('set_loading', {'loading': false});
+          context.commit('set_loading', {
+            'index': 0,
+            'loading': false,
+          });
           return;
         }
         context.commit('set_file_list', {
           'files': response.data.files,
         });
-        context.commit('set_loading', {'loading': false});
+        context.commit('set_loading', {
+          'index': 0,
+          'loading': false,
+        });
       });
   },
   load_file(context, payload) {
-    context.commit('set_loading', {'loading': true});
+    context.commit('set_loading', {
+      'index': 0,
+      'loading': true,
+    });
 
     if(context.state.file_id == '') {
       alert("File is not selected.");
@@ -33,14 +45,20 @@ export default {
       .then(function(response){
         if(response.data.error_msg) {
           alert(response.data.error_msg);
-          context.commit('set_loading', {'loading': false});
+          context.commit('set_loading', {
+            'index': 0,
+            'loading': false,
+          });
           return;
         }
 
         context.commit('set_load_result', {
           'data': response.data,
         });
-        context.commit('set_loading', {'loading': false});
+        context.commit('set_loading', {
+          'index': 0,
+          'loading': false,
+        });
       });
   },
 
@@ -59,7 +77,10 @@ export default {
     }).then(function(response) {
         if(response.data.error_msg) {
           alert(response.data.error_msg);
-          context.commit('set_loading', {'loading': false});
+          context.commit('set_loading', {
+            'index': payload.index,
+            'loading': false,
+          });
           return;
         }
         context.commit('set_reduction_result', {
@@ -69,7 +90,10 @@ export default {
       });
   },
   async create(context, payload) {
-    context.commit('set_loading', {'loading': true});
+    context.commit('set_loading', {
+      'index': payload.index,
+      'loading': true,
+    });
     context.commit('set_setting_modal', {"is_show": false});
 
     context.commit('reset_topology');
@@ -90,6 +114,7 @@ export default {
       "overlap": context.state.topologies[payload.index].overlap,
       "color_index": context.state.topologies[payload.index].color_index,
       'point_cloud': context.state.topologies[payload.index].point_cloud,
+      "visualize_mode": context.state.visualize_mode,
     }
     fd.append('data', JSON.stringify(dict));
 
@@ -97,7 +122,10 @@ export default {
       .then(function(response) {
         if(response.data.error_msg) {
           alert(response.data.error_msg);
-          context.commit('set_loading', {'loading': false});
+          context.commit('set_loading', {
+            'index': payload.index,
+            'loading': false,
+          });
           return;
         }
         context.commit('set_create_result', {
@@ -110,11 +138,17 @@ export default {
           'colors': response.data.colors,
           'train_index': response.data.train_index,
         });
-        context.commit('set_loading', {'loading': false});
+        context.commit('set_loading', {
+          'index': payload.index,
+          'loading': false,
+        });
       });
   },
   export_data(context, payload) {
-    context.commit('set_loading', {'loading': true});
+    context.commit('set_loading', {
+      'index': payload.index,
+      'loading': true,
+    });
 
     let fd = new FormData();
     fd.append('out_file_name', payload.out_file_name);
@@ -125,14 +159,23 @@ export default {
       .then(function(response) {
         if(response.data.error_msg) {
           alert(response.data.error_msg);
-          context.commit('set_loading', {'loading': false});
+          context.commit('set_loading', {
+            'index': payload.index,
+            'loading': false,
+          });
           return;
         }
-        context.commit('set_loading', {'loading': false});
+        context.commit('set_loading', {
+          'index': payload.index,
+          'loading': false,
+        });
       });
   },
   search(context, payload) {
-    context.commit('set_loading', {'loading': true});
+    context.commit('set_loading', {
+      'index': payload.index,
+      'loading': true,
+    });
     context.commit("set_search_modal", {"is_show": false});
 
     let fd = new FormData();
@@ -158,7 +201,10 @@ export default {
       .then(function(response) {
         if(response.data.error_msg) {
           alert(response.data.error_msg);
-          context.commit('set_loading', {'loading': false});
+          context.commit('set_loading', {
+            'index': payload.index,
+            'loading': false,
+          });
           return;
         }
 
@@ -166,7 +212,10 @@ export default {
           'index': payload.index,
           'colors': response.data.colors,
         });
-        context.commit('set_loading', {'loading': false});
+        context.commit('set_loading', {
+          'index': payload.index,
+          'loading': false,
+        });
       });
   }
 }

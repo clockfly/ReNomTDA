@@ -4,7 +4,7 @@ export default {
   // selected file id
   file_id: '',
   // loading flag
-  loading: false,
+  loading: [false, false],
 
   // highlighted column name
   selected_column: undefined,
@@ -113,6 +113,6 @@ export default {
   // show search condition modal
   show_search_modal: false,
 
-  // spring model
-  spring: false,
+  // visualize model
+  visualize_mode: 0,
 }

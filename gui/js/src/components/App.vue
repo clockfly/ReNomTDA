@@ -2,7 +2,7 @@
   <div id="app">
     <appheader></appheader>
     <router-view></router-view>
-    <loadingmodal v-if="$store.state.loading"></loadingmodal>
+    <loadingmodal v-if="$store.state.loading[0] || $store.state.loading[1]"></loadingmodal>
   </div>
 </template>
 
@@ -76,7 +76,7 @@ input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-.flex_right {
+.flex-right {
   margin-left: auto;
 }
 @for $i from 1 through 15 {

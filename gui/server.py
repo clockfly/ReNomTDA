@@ -19,6 +19,7 @@ from renom_tda.lens import PCA, TSNE, Isomap
 from renom_tda.topology import Topology
 from renom_tda.loader import CSVLoader
 from renom_tda.utils import GraphUtil
+from renom_tda.presenter import SpectralPresenter
 
 from storage import storage
 from settings import ENCODING
@@ -257,6 +258,8 @@ def create():
         overlap = float(data["overlap"])
         topology.point_cloud = np.array(data["point_cloud"])
 
+        visualize_mode = int(data["visualize_mode"])
+
         if mode == 0:
             # scatter plot
             colors = []
@@ -308,6 +311,12 @@ def create():
         elif mode == 3:
             # tda
             topology.map(resolution=resolution, overlap=overlap, eps=eps, min_samples=min_samples)
+
+            if visualize_mode == 2:
+                presenter = SpectralPresenter(fig_size=(10,10), node_size=5, edge_width=1)
+                pos = presenter._get_position(topology.nodes, topology.edges)
+                topology.nodes = np.array(list(pos.values()))
+                print("spectral")
 
             colors = []
             for i in range(topology.number_data.shape[1]):

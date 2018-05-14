@@ -34,7 +34,7 @@ export default {
     state.data_max = payload.data.data_max;
   },
   set_loading: function(state, payload) {
-    state.loading = payload.loading;
+    state.loading[payload.index] = payload.loading;
   },
   set_select_column_name: function(state, payload) {
     state.selected_column = payload.name;
@@ -121,5 +121,8 @@ export default {
   },
   set_search_type: function(state, payload) {
     state.search_type = payload.val;
+  },
+  set_visualize_mode: function(state, payload) {
+    state.visualize_mode = payload.val;
   }
 }

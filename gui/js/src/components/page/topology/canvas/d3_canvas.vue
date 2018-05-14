@@ -52,10 +52,9 @@ export default {
       const size_max = Math.max.apply(null, this.sizes);
 
       // selected spring or not
-      const spring = this.$store.state.spring;
+      const spring = this.$store.state.visualize_mode;
 
       // selected node
-      // let active_node = undefined;
       let active_node_array = [];
 
       let links = []
@@ -77,15 +76,15 @@ export default {
       svg.append("g")
         .attr("class", "nodes")
 
-      if(spring && links.length > 0){
+      if(spring > 0 && links.length > 0){
         var simulation = d3.forceSimulation(nodes)
-          .force('charge', d3.forceManyBody().strength(-5))
-          .force('collision', d3.forceCollide().radius(function(d,i) { return sizes[i]*12; }))
+          .force('charge', d3.forceManyBody().strength(0))
+          .force('collision', d3.forceCollide().radius(function(d,i) { return sizes[i]; }))
           .force('x', d3.forceX().x(function(d,i) {
-            return setCoordinate(nodes[i][0], width);
+            return nodes[i][0]*width;
           }))
           .force('y', d3.forceY().y(function(d,i) {
-            return setCoordinate(nodes[i][1], height);
+            return nodes[i][1]*height;
           }))
           .force('link', d3.forceLink(links)
           .distance(30)
@@ -137,30 +136,6 @@ export default {
           });
       }
 
-      function setCoordinate(data, bound){
-        if(data < 0.2){
-          return bound*0.1;
-        }else if(data >= 0.2 && data < 0.4){
-          return bound*0.3
-        }else if(data >= 0.4 && data < 0.6){
-          return bound*0.5;
-        }else if(data >= 0.6 && data < 0.8){
-          return bound*0.7;
-        }else{
-          return bound*0.9;
-        }
-      }
-
-      function checkBoundary(data, r, bound){
-        if((data+r) > bound){
-          return bound - r;
-        }else if((data-r) < 0){
-          return r;
-        }else{
-          return data;
-        }
-      }
-
       function updateLinks() {
         let u = svg.select(".links")
           .selectAll('line')
@@ -169,23 +144,11 @@ export default {
         u.enter()
           .append('line')
           .merge(u)
-          .attr('x1', function(d,i) {
-            let r = sizes[edges[i][0]]*10;
-            return d.source.x = checkBoundary(d.source.x, r, width);
-          })
-          .attr('y1', function(d,i) {
-            let r = sizes[edges[i][0]]*10;
-            return d.source.y = checkBoundary(d.source.y, r, height);
-          })
-          .attr('x2', function(d,i) {
-            let r = sizes[edges[i][1]]*10;
-            return d.target.x = checkBoundary(d.target.x, r, width);
-          })
-          .attr('y2', function(d,i) {
-            let r = sizes[edges[i][1]]*10;
-            return d.target.y = checkBoundary(d.target.y, r, height);
-          })
-          .attr('stroke', function(d,i){ return colors[d[0]]; })
+          .attr('x1', function(d,i) { return d.source.x; })
+          .attr('y1', function(d,i) { return d.source.y; })
+          .attr('x2', function(d,i) { return d.target.x; })
+          .attr('y2', function(d,i) { return d.target.y; })
+          .attr('stroke', function(d,i){ return colors[edges[i][0]]; })
 
         u.exit().remove()
       }
@@ -198,14 +161,8 @@ export default {
         u.enter()
           .append('circle')
           .merge(u)
-          .attr("cx", function(d, i) {
-            let r = sizes[i]*10;
-            return d.x = checkBoundary(d.x, r, width);
-          })
-          .attr("cy", function(d, i) {
-            let r = sizes[i]*10;
-            return d.y = checkBoundary(d.y, r, height);
-          })
+          .attr("cx", function(d, i) { return d.x; })
+          .attr("cy", function(d, i) { return d.y; })
           .attr('r', function(d,i) { return sizes[i]; })
           .attr('fill', function(d,i){ return colors[i]; })
           .style("opacity", function(d,i) {
