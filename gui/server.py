@@ -313,7 +313,7 @@ def create():
             topology.map(resolution=resolution, overlap=overlap, eps=eps, min_samples=min_samples)
 
             if visualize_mode == 2:
-                presenter = SpectralPresenter(fig_size=(10,10), node_size=5, edge_width=1)
+                presenter = SpectralPresenter(fig_size=(10, 10), node_size=5, edge_width=1)
                 pos = presenter._get_position(topology.nodes, topology.edges)
                 topology.nodes = np.array(list(pos.values()))
                 print("spectral")
