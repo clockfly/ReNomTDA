@@ -34,7 +34,7 @@ export default {
     state.data_max = payload.data.data_max;
   },
   set_loading: function(state, payload) {
-    state.loading[payload.index] = payload.loading;
+    state.loading.splice(payload.index, 1, payload.loading);
   },
   set_select_column_name: function(state, payload) {
     state.selected_column = payload.name;
