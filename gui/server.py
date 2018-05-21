@@ -9,8 +9,6 @@ import scipy
 import string
 from bottle import HTTPResponse, default_app, request, route, run, static_file
 from sklearn import cluster, ensemble, neighbors, preprocessing, svm
-from watchdog.observers import Observer
-from watchdog.events import PatternMatchingEventHandler
 
 import renom as rm
 from renom.optimizer import Adam
