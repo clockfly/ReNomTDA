@@ -165,3 +165,4 @@ Additional ignored files
 
 */.DS_Store
 gui/.storage/*
+gui/data/*

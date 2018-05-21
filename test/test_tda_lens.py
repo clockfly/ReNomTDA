@@ -1,9 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-
 import pytest
-
-from renom_tda.lens import L1Centrality, LinfCentrality, GaussianDensity, PCA, TSNE, MDS, Isomap
+from renom_tda.lens import L1Centrality, LinfCentrality, GaussianDensity, PCA, TSNE, MDS, Isomap, Lenses
 
 
 def test_l1():
@@ -114,3 +112,34 @@ def test_isomap_none_input():
 def test_isomap_none_components():
     with pytest.raises(Exception):
         Isomap(components=None)
+
+
+def test_lenses():
+    dist_matrix = np.array([[0., 1.], [1., 0.]])
+
+    filters = [L1Centrality(), GaussianDensity(h=0.5)]
+    lenses = Lenses(filters=filters)
+
+    projected_data = lenses.fit_transform(dist_matrix)
+
+    test_data = np.array([[1.0, 1.0], [np.exp(0) + np.exp(-1), np.exp(-1) + np.exp(0)]])
+    test_data = test_data.T
+
+    assert_array_equal(projected_data, test_data)
+
+
+def test_lenses_none_filters():
+    dist_matrix = np.array([[0., 1.], [1., 0.]])
+    filters = None
+    lenses = Lenses(filters=filters)
+    projected_data = lenses.fit_transform(dist_matrix)
+    assert_array_equal(projected_data, dist_matrix)
+
+
+def test_lenses_none_input():
+    dist_matrix = None
+    filters = [L1Centrality(), GaussianDensity()]
+    lenses = Lenses(filters=filters)
+
+    with pytest.raises(Exception):
+        lenses.fit_transform(dist_matrix)
