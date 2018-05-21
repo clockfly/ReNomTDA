@@ -119,7 +119,6 @@ class SpringPresenter(Presenter):
                 init_position.update({i: [n[i], n[i]]})
         elif nodes.shape[1] == 2 or nodes.shape[1] == 3:
             for i, n in enumerate(nodes):
-                print(n)
                 init_position.update({i: n[:2]})
         return init_position
 
