@@ -303,7 +303,7 @@ class Topology(object):
 
         # save with presenter save function.
         presenter = self._get_presenter(fig_size, node_size, edge_width, mode, strength)
-        presenter.save(self.nodes, self.edges, self.node_sizes, self.hex_colors)
+        presenter.save(file_name, self.nodes, self.edges, self.node_sizes, self.hex_colors)
 
     def _node_index_from_data_id(self, data_index):
         # return node index that has data in args.
