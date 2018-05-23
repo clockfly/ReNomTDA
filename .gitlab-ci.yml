@@ -1,7 +1,7 @@
 image : python:3
 
 before_script:
-  - apt-get update -qq && apt-get install -y -qq python-pip pandoc
+  - apt-get update -qq && apt-get install -y -qq python-pip pandoc python3-wheel
   - pip install -r requirements.txt
   - pip install -e .
 
@@ -16,3 +16,17 @@ pytest:
     - export RENOM_PRECISION=32
     - py.test
 
+
+pages:
+  script:
+    - python3 setup.py bdist_wheel sdist
+    - mkdir -p public/bin
+    - cp dist/* public/bin
+    - ls public/bin
+
+  artifacts:
+    paths:
+      - public
+
+  only:
+    - beta
