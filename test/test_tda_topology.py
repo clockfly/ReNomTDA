@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 from sklearn import cluster, preprocessing
-from renom_tda.lens import PCA, L1Centrality, GaussianDensity
-from renom_tda.topology import Topology
+from renom_tda.api.lens import PCA, L1Centrality, GaussianDensity
+from renom_tda.api.topology import Topology
 
 
 def test_load_data_none():
