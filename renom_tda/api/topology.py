@@ -449,7 +449,7 @@ class Topology(object):
         # calc color with painter's paint function.
         painter_resolver = PainterResolver()
         painter = painter_resolver.resolve(color_type)
-        for i, t in enumerate(target):
+        for i, t in enumerate(self.normalized_target):
             self.point_cloud_hex_colors[i] = painter.paint(t)
 
     def show_point_cloud(self, fig_size=(5, 5), node_size=5):
