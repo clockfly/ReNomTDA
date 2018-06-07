@@ -13,17 +13,6 @@ before_script:
   - pip3 install -r requirements.txt
   - pip install -e .
 
-# flake8:
-#   script:
-#     - flake8 .
-#
-# pytest:
-#   script:
-#     - export RENOM_PRECISION=64
-#     - py.test
-#     - export RENOM_PRECISION=32
-#     - py.test
-
 pages:
   script:
     - python3 setup.py bdist_wheel sdist
