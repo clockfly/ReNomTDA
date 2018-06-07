@@ -4,6 +4,7 @@ Documents are available on the ReNom.jp web site.
 
 - http://renom.jp/index.html
 
+
 ## Requirements
 
 - python2.7, 3.4
@@ -21,27 +22,37 @@ Documents are available on the ReNom.jp web site.
 - renom
 
 
-## Installation
+## Install ReNomTDA package
 
-First clone the ReNomTDA repository.
+Linux user can install ReNomIMG from Wheel package.
+
+Other os user can't install from Wheel package but can install from source.
+
+The Wheel package is provided at:
+
+https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-VERSION-py3-none-any.whl
+
+(VERSION is stands for actual version number e.g. 2.1.0)
+
+You can install the wheel package with pip3 command::
+
+pip3 install https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-2.1.0-py3-none-any.whl
+
+
+# Install from source
+
+For install ReNomTDA, download the repository from following url.
 
 	git clone https://github.com/ReNom-dev-team/ReNomTDA.git
 
-Then move to the ReNomTDA folder, install the module using pip.
+Then move to the ReNomTDA directory, and install the module using pip.
 
 	cd ReNomTDA
 	pip install -e .
 
-## Precision
-
-If you set an environment variable RENOM_PRECISION=64, 
-calculations are performed with float64.
-
-Default case, the precision is float32.
-
 
 ## License
 
-“ReNom” is provided by GRID inc., as subscribed software.  By downloading ReNom, you are agreeing to be bound by our ReNom Subscription agreement between you and GRID inc.
+“ReNomTDA” is provided by GRID inc., as subscribed software.  By downloading ReNom, you are agreeing to be bound by our ReNom Subscription agreement between you and GRID inc.
 To use ReNom for commercial purposes, you must first obtain a paid license. Please contact us or one of our resellers.  If you are an individual wishing to use ReNom for academic, educational and/or product evaluation purposes, you may use ReNom royalty-free.
 The ReNom Subscription agreements are subject to change without notice. You agree to be bound by any such revisions. You are responsible for visiting www.renom.jp to determine the latest terms to which you are bound.

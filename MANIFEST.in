@@ -1,0 +1,1 @@
+recursive-include renom_tda = *.py *.css *.eot *.html *.js *.svg *.ttf *.woff *.woff2
