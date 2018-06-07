@@ -1,7 +1,7 @@
 image: node:10.1
 
 before_script:
-  - apt -y update && apt install -y tk-dev
+  - apt -y update && apt-get install -y tk-dev
   - wget https://www.python.org/ftp/python/3.5.0/Python-3.5.0.tar.xz
   - tar Jxfv Python-3.5.0.tar.xz
   - cd Python-3.5.0
