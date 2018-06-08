@@ -23,3 +23,14 @@ pages:
   artifacts:
     paths:
     - public
+
+flake8:
+  script:
+    - flake8 .
+
+pytest:
+  script:
+    - export RENOM_PRECISION=64
+    - py.test
+    - export RENOM_PRECISION=32
+    - py.test
