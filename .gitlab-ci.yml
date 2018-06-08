@@ -1,17 +1,18 @@
-image: node:10.1
+image: ubuntu:16.04
 
 before_script:
-  - apt -y update && apt-get install -y tk-dev
-  - wget https://www.python.org/ftp/python/3.5.0/Python-3.5.0.tar.xz
-  - tar Jxfv Python-3.5.0.tar.xz
-  - cd Python-3.5.0
-  - ./configure; make; make install
-  - alias python3='python3.5'; alias pip3='pip3.5'
+  - apt-get update
+  - apt-get install -y python3 python3-tk build-essential python3-pip nodejs npm curl git
+  - npm install -g n
+  - n stable
   - cd ..
-  - pip3 install --upgrade pip
+  - git clone https://github.com/ReNom-dev-team/ReNom.git
+  - pip3 install -r ReNom/requirements.txt
+  - pip3 install -e ReNom/
   - pip3 install wheel
+  - cd ReNomTDA
   - pip3 install -r requirements.txt
-  - pip install -e .
+  - pip3 install -e .
 
 pages:
   script:
@@ -23,3 +24,11 @@ pages:
   artifacts:
     paths:
     - public
+
+flake8:
+  script:
+    - flake8 .
+
+pytest:
+  script:
+    - py.test
