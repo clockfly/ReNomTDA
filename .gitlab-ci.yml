@@ -1,7 +1,9 @@
-image: node:10.1
+image: python:3
 
 before_script:
-  - apt -y update && apt-get install -y tk-dev python3 python3-tk python3-pip build-essential
+  - apt -y update && apt-get install -y nodejs npm
+  - npm install -g n
+  - n stable
   - cd ..
   - pip3 install --upgrade pip
   - git clone https://github.com/ReNom-dev-team/ReNom.git
