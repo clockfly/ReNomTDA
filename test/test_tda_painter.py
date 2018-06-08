@@ -1,5 +1,5 @@
 import pytest
-from renom_tda.api.painter import RGBPainter, GrayPainter, PainterResolver
+from renom_tda import RGBPainter, GrayPainter, PainterResolver
 
 
 def test_rgb_painter_min():

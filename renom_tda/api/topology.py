@@ -5,11 +5,11 @@ import numpy as np
 import pandas as pd
 from sklearn import cluster, preprocessing
 
-from renom_tda.api.lens import Lenses
-from renom_tda.api.utils import DistUtil, MapUtil, GraphUtil
-from renom_tda.api.painter import PainterResolver
-from renom_tda.api.presenter import PresenterResolver
-from renom_tda.api.searcher import SearcherResolver
+from renom_tda import Lenses
+from renom_tda import DistUtil, MapUtil, GraphUtil
+from renom_tda import PainterResolver
+from renom_tda import PresenterResolver
+from renom_tda import SearcherResolver
 
 
 class Topology(object):

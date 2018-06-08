@@ -13,12 +13,7 @@ import string
 from bottle import HTTPResponse, default_app, request, route, run, static_file
 from sklearn import cluster, ensemble, neighbors, preprocessing, svm
 
-from renom_tda.api.lens import PCA, TSNE, Isomap
-from renom_tda.api.topology import Topology
-from renom_tda.api.loader import CSVLoader
-from renom_tda.api.utils import GraphUtil
-from renom_tda.api.presenter import SpectralPresenter
-
+from renom_tda import CSVLoader, PCA, TSNE, Isomap, GraphUtil, SpectralPresenter, Topology
 from renom_tda.server.storage import storage
 from renom_tda.server.settings import ENCODING
 from renom_tda.server import wsgi_server

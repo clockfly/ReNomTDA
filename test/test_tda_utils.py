@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 import sklearn.cluster as cluster
-from renom_tda.api.utils import DistUtil, MapUtil, GraphUtil
+from renom_tda import DistUtil, MapUtil, GraphUtil
 
 
 def test_dist_util_matrix_cityblock():
