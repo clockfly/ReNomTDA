@@ -8,6 +8,9 @@ before_script:
   - ./configure; make; make install
   - alias python3='python3.5'; alias pip3='pip3.5'
   - cd ..
+  - git clone https://github.com/ReNom-dev-team/ReNom.git
+  - cd ReNom && pip3 install requirements.txt && pip3 install -e .
+  - cd ..
   - pip3 install --upgrade pip
   - pip3 install wheel
   - pip3 install -r requirements.txt
@@ -24,9 +27,9 @@ pages:
     paths:
     - public
 
-flake8:
-  script:
-    - flake8 .
+# flake8:
+#   script:
+#     - flake8 .
 
 pytest:
   script:
