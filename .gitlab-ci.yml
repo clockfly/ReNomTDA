@@ -5,7 +5,6 @@ before_script:
   - apt-get install -y python3 python3-tk build-essential python3-pip nodejs npm curl git
   - npm install -g n
   - n stable
-  - cd ..
   # - pip3 install --upgrade pip
   - git clone https://github.com/ReNom-dev-team/ReNom.git
   - cd ReNom
