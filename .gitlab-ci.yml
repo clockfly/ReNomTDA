@@ -1,7 +1,8 @@
 image: python:3
 
 before_script:
-  - apt -y update && apt-get install -y nodejs npm
+  - apt-get -y update
+  - apt-get install -y nodejs npm
   - npm install -g n
   - n stable
   - cd ..
