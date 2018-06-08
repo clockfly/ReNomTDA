@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from renom_tda.api.searcher import NumberSearcher, TextSearcher, SearcherResolver
+from renom_tda import NumberSearcher, TextSearcher, SearcherResolver
 
 
 def test_number_searcher_equal():

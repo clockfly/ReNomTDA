@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
-from renom_tda.api.lens import L1Centrality, LinfCentrality, GaussianDensity, PCA, TSNE, MDS, Isomap, Lenses
+from renom_tda import L1Centrality, LinfCentrality, GaussianDensity, PCA, TSNE, MDS, Isomap, Lenses
 
 
 def test_l1():

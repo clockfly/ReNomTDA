@@ -1,5 +1,5 @@
 import pytest
-from renom_tda.api.loader import CSVLoader
+from renom_tda import CSVLoader
 
 
 def test_csv_loader_file_not_exists():

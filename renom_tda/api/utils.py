@@ -4,7 +4,7 @@ import itertools
 import numpy as np
 import scipy
 from scipy.spatial import distance
-from renom_tda.api.painter import PainterResolver
+from renom_tda import PainterResolver
 
 
 class DistUtil(object):
