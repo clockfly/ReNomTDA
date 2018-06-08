@@ -7,10 +7,8 @@ before_script:
   - n stable
   # - pip3 install --upgrade pip
   - git clone https://github.com/ReNom-dev-team/ReNom.git
-  - cd ReNom
-  - pip3 install -r requirements.txt
-  - pip3 install -e .
-  - cd ..
+  - pip3 install -r ReNom/requirements.txt
+  - pip3 install -e ReNom/
   - pip3 install wheel
   - pip3 install -r requirements.txt
   - pip3 install -e .
