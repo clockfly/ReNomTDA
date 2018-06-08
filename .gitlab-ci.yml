@@ -1,8 +1,8 @@
-image: python:3
+image: ubuntu:16.04
 
 before_script:
-  - apt-get -qq update
-  - apt-get install -y nodejs npm
+  - apt-get update
+  - apt-get install -y python3 python3-tk build-essential python3-pip nodejs npm
   - npm install -g n
   - n stable
   - cd ..
