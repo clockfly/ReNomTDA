@@ -9,7 +9,7 @@ import distutils.command.build
 
 
 if sys.version_info < (3, 4):
-    raise RuntimeError('renom_img requires Python3')
+    raise RuntimeError('renom_tda requires Python3')
 
 DIR = str(pathlib.Path(__file__).resolve().parent)
 
