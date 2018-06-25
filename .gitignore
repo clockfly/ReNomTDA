@@ -164,6 +164,4 @@ Additional ignored files
 /doc/_build
 
 */.DS_Store
-server/.storage/*
-gui/.storage/*
-gui/data/*
+renom_tda/server/.storage/*

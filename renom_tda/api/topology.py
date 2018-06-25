@@ -339,7 +339,7 @@ class Topology(object):
 
         self.search(search_dicts=search_dicts, target=target, search_type=search_type)
 
-    def _get_searched_index(self, data, search_dicts, search_type="and"):
+    def _get_searched_index(self, data=None, search_dicts=None, search_type="and"):
         """Function of getting data index with search conditions."""
         resolver = SearcherResolver(data, self.text_data, self.number_data_columns, self.text_data_columns)
 
@@ -386,7 +386,7 @@ class Topology(object):
                 raise Exception("target must have same row size of data.")
             d = np.concatenate([self.number_data, target.reshape(-1, 1)], axis=1)
 
-        data_index = self._get_searched_index(d, search_dicts, search_type)
+        data_index = self._get_searched_index(data=d, search_dicts=search_dicts, search_type=search_type)
         node_index = self._node_index_from_data_id(data_index)
         self._set_search_color(node_index)
         return node_index
@@ -565,45 +565,3 @@ class Topology(object):
         data_index = self._get_searched_index(d, search_dicts, search_type)
         self._set_search_point_cloud_color(data_index)
         return data_index
-
-
-if __name__ == "__main__":
-    from sklearn.datasets import load_iris
-    from loader import CSVLoader
-    from lens import L1Centrality, GaussianDensity
-
-    iris = load_iris()
-    data = iris.data
-    target = iris.target
-
-    t = Topology()
-    # loader = CSVLoader("test/data/test.csv")
-    # t.load(loader=loader, standardize=True)
-    t.load_data(data)
-
-    lens = [L1Centrality(), GaussianDensity()]
-    t.fit_transform(metric="euclidean", lens=lens)
-
-    t.map(resolution=10, overlap=0.5, eps=0.1, min_samples=2)
-
-    # target = [0., 1.]
-    t.color(target, color_method="mean", color_type="rgb", normalize=True)
-
-    search_dicts = [{
-        "data_type": "number",
-        "operator": ">",
-        "column": 0,
-        "value": 5.0,
-    }, {
-        "data_type": "number",
-        "operator": "=",
-        "column": -1,
-        "value": 1.0,
-    }]
-    # searched_node_index = t.search_from_values(search_dicts=search_dicts, target=target, search_type="and")
-    # t.export(file_name='test.csv', node_ids=searched_node_index)
-    t.show(mode="spectral")
-
-    # t.color_point_cloud(target=target)
-    # t.search_point_cloud(search_dicts=search_dicts, target=target, search_type="or")
-    # t.show_point_cloud()

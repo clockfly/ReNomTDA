@@ -92,7 +92,7 @@ class PCA(Lens):
             raise Exception("Component error.")
 
         self.components = components
-        self.pca = decomposition.PCA(n_components=(max(self.components) + 1))
+        self.pca = decomposition.PCA(n_components=(max(self.components) + 1), random_state=0)
 
     @Lens._check_data
     def fit_transform(self, data):
@@ -119,7 +119,7 @@ class TSNE(Lens):
             raise Exception("Component error.")
 
         self.components = components
-        self.tsne = manifold.TSNE(n_components=max(components) + 1, init='pca')
+        self.tsne = manifold.TSNE(n_components=max(components) + 1, init='pca', random_state=0)
 
     @Lens._check_data
     def fit_transform(self, data):
@@ -144,7 +144,7 @@ class MDS(Lens):
             raise Exception("Component error.")
 
         self.components = components
-        self.mds = manifold.MDS(n_components=max(components) + 1, random_state=10)
+        self.mds = manifold.MDS(n_components=max(components) + 1, random_state=0)
 
     @Lens._check_data
     def fit_transform(self, data):
