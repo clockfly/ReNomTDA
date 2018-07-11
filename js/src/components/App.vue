@@ -59,7 +59,7 @@ button {
   background-color: #f3f3f1;
   box-sizing: border-box;
 }
-input[type='number'] {
+input[type='number'], input[type='text'] {
   -moz-appearance: textfield;
   width: 64px;
   height: $input-line-height;
@@ -72,7 +72,9 @@ input[type='number'] {
   color: $font-color;
 }
 input[type='number']::-webkit-outer-spin-button,
-input[type='number']::-webkit-inner-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='text']::-webkit-outer-spin-button,
+input[type='text']::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }

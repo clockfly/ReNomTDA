@@ -71,7 +71,6 @@ def index():
         init_db()
         return _get_resource('', 'index.html')
     except Exception as e:
-        print(e)
         body = json.dumps({"error_msg": e.args[0]})
         r = create_response(body)
         return r
@@ -393,11 +392,19 @@ def export():
         return r
 
 
+def _decode_txt(txt):
+    # base64から元の文字列を復元
+    bytes_str = b""
+    for i in range(len(txt)):
+        bytes_str += int(txt[str(i)]).to_bytes(1, byteorder='big')
+    decoded_txt = bytes_str.decode('utf-8')
+    return decoded_txt
+
+
 @route('/api/search', method='POST')
 def search():
     try:
         data = json.loads(request.params.data)
-
         topology = Topology(verbose=0)
         file_id = int(data["file_id"])
         file_name = _get_file_name_from_id(file_id)
@@ -421,7 +428,16 @@ def search():
         topology.nodes = np.array(data["nodes"])
         topology.edges = np.array(data["edges"])
         search_type = data["search_type"]
-        search_conditions = data["search_conditions"]
+
+        search_dicts = []
+        for condition in data["search_conditions"]:
+            c = {
+                "data_type": condition["data_type"],
+                "column": condition["column"],
+                "operator": condition["operator"],
+                "value": _decode_txt(condition["value"])
+            }
+            search_dicts.append(c)
 
         colors = []
         if mode == 0:
@@ -430,8 +446,8 @@ def search():
                 scaler = preprocessing.MinMaxScaler()
                 t = scaler.fit_transform(t.reshape(-1, 1))
                 topology.color_point_cloud(target=t)
-                if len(search_conditions) > 0:
-                    topology.search_point_cloud(search_dicts=search_conditions, search_type=search_type)
+                if len(search_dicts) > 0:
+                    topology.search_point_cloud(search_dicts=search_dicts, search_type=search_type)
                 colors.append(topology.point_cloud_hex_colors)
         elif mode == 1:
             # unsupervised_clusterings
@@ -447,8 +463,8 @@ def search():
             if target_index != '':
                 topology.number_data = _concat_target(topology.number_data, target, int(target_index))
 
-            if len(search_conditions) > 0:
-                topology.search_point_cloud(search_dicts=search_conditions, search_type=search_type)
+            if len(search_dicts) > 0:
+                topology.search_point_cloud(search_dicts=search_dicts, search_type=search_type)
 
             colors = []
             for i in range(topology.number_data.shape[1]):
@@ -468,8 +484,8 @@ def search():
             if target_index != '':
                 topology.number_data = _concat_target(topology.number_data, target, int(target_index))
 
-            if len(search_conditions) > 0:
-                topology.search_point_cloud(search_dicts=search_conditions, search_type=search_type)
+            if len(search_dicts) > 0:
+                topology.search_point_cloud(search_dicts=search_dicts, search_type=search_type)
 
             colors = []
             for i in range(topology.number_data.shape[1]):
@@ -485,8 +501,8 @@ def search():
                 scaler = preprocessing.MinMaxScaler()
                 t = scaler.fit_transform(t.reshape(-1, 1))
                 topology.color(target=t)
-                if len(search_conditions) > 0:
-                    topology.search(search_dicts=search_conditions, search_type=search_type)
+                if len(search_dicts) > 0:
+                    topology.search(search_dicts=search_dicts, search_type=search_type)
                 colors.append(topology.hex_colors)
 
 

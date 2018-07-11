@@ -40,7 +40,10 @@
             </select>
           </div>
 
-          <input type="number" step="0.01"
+          <input v-if='condition["data_type"]==="number"' type="number" step="0.01"
+            class="search-value"
+            v-model='condition["value"]' />
+          <input v-if='condition["data_type"]==="text"' type="text"
             class="search-value"
             v-model='condition["value"]' />
 
