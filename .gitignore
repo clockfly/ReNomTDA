@@ -165,3 +165,5 @@ Additional ignored files
 
 */.DS_Store
 renom_tda/server/.storage/*
+renom_tda/server/data/*
+renom_tda/server/.build/*

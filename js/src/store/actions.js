@@ -178,6 +178,18 @@ export default {
     });
     context.commit("set_search_modal", {"is_show": false});
 
+    let text_encoder = new TextEncoder()
+    let search_conditions = []
+    for (let condition of payload.conditions) {
+      let c = {
+        'data_type': condition['data_type'],
+        'column': condition['column'],
+        'operator': condition['operator'],
+        'value': text_encoder.encode(condition['value'])
+      }
+      search_conditions.push(c)
+    }
+
     let fd = new FormData();
     let dict = {
       "file_id": context.state.file_id,
@@ -193,7 +205,7 @@ export default {
       'nodes': context.state.topologies[payload.index].nodes,
       'edges': context.state.topologies[payload.index].edges,
       'search_type': payload.search_type,
-      'search_conditions': payload.conditions
+      'search_conditions': search_conditions
     }
     fd.append('data', JSON.stringify(dict));
 
