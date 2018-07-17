@@ -11,7 +11,7 @@
           <tr v-for="(row, index) in $store.getters.click_node_data"
             :key="index">
             <td v-for="(d, index) in row" :key="index" class="table-data">
-              {{ d }}
+              {{ roundNumber(d) }}
             </td>
           </tr>
         </tbody>
@@ -33,6 +33,13 @@
 export default {
   name: "SelectTable",
   methods: {
+    roundNumber: function(val) {
+      if (isNaN(val)) {
+        return val;
+      } else {
+        return Math.round(val*1000)/1000;
+      }
+    },
     exportData: function() {
       let out_file_name = window.prompt('Please input file name', '');
       if(out_file_name && out_file_name.length > 0){
