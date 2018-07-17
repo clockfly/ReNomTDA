@@ -20,24 +20,47 @@ export default {
     },
     topology() {
       return this.$store.state.topologies[this.id];
+    },
+    click_node_ids() {
+      return this.$store.state.click_node_ids;
     }
   },
   watch: {
     color_index: function() {
-      this.reset_canvas();
-      this.draw_graph();
+      this.draw();
     },
     colors: function() {
-      this.reset_canvas();
-      this.draw_graph();
+      this.draw();
+    },
+    click_node_ids: function() {
+      this.reset_shadow();
+      this.draw_shadow();
     }
   },
   mounted: function() {
-    this.draw_graph();
+    this.draw();
   },
   methods: {
+    draw: function() {
+      this.reset_canvas();
+      this.draw_graph();
+      this.reset_shadow();
+      this.draw_shadow();
+    },
     reset_canvas: function() {
       let e = d3.select('#canvas'+this.id).html("");
+    },
+    reset_shadow: function() {
+      let svg = d3.select('#canvas'+this.id).select("svg")
+      let circles = svg.selectAll("circle")
+        .attr("stroke-width", function(d){ return 0; });
+    },
+    draw_shadow: function() {
+      for (let i of this.click_node_ids[this.id]) {
+        let e = d3.select("#circle"+this.id+"_"+i);
+        e.attr("stroke", function(d) {return d3.rgb(153,153,153,0.3);})
+         .attr("stroke-width", function(d){ return 5; });
+      }
     },
     draw_graph: function() {
       const self = this;
@@ -53,9 +76,6 @@ export default {
 
       // selected spring or not
       const spring = this.$store.state.visualize_mode;
-
-      // selected node
-      let active_node_array = [];
 
       let links = []
       for(let i=0;i<edges.length;i++){
@@ -103,6 +123,7 @@ export default {
         let circles = svg.selectAll("circle")
           .data(nodes)
           .enter().append("circle")
+          .attr("id", function(d, i) { return "circle"+self.id+"_"+i })
           .attr("cx", function(d) {return (d[0]*width); })
           .attr("cy", function(d) {return (d[1]*height); })
           .attr("r", function(d,i) { return sizes[i]; })
@@ -116,18 +137,20 @@ export default {
             }
           })
           .on('click', function(d, i){
-            if(active_node_array.includes(i)) {
-              d3.select(this).attr("stroke-width", function(d){ return 0; });
-              active_node_array = active_node_array.filter(n => n != i);
+            if(self.click_node_ids[self.id].includes(i)) {
+              store.commit('remove_click_node_ids', {
+                'click_node_index': i,
+                'index': self.id
+              });
               store.commit('remove_click_node', {
                 'click_node_index': i,
                 'index': self.id
               });
             }else{
-              let n = d3.select(this);
-              active_node_array.push(i);
-              n.attr("stroke", function(d) { return d3.rgb(153,153,153,0.3); })
-               .attr("stroke-width", function(d){ return 3; });
+              store.commit('set_click_node_ids', {
+                'click_node_index': i,
+                'index': self.id
+              });
               store.commit('set_click_node', {
                 'click_node_index': i,
                 'index': self.id
@@ -161,6 +184,7 @@ export default {
         u.enter()
           .append('circle')
           .merge(u)
+          .attr("id", function(d, i) { return "circle"+self.id+"_"+i })
           .attr("cx", function(d, i) { return d.x; })
           .attr("cy", function(d, i) { return d.y; })
           .attr('r', function(d,i) { return sizes[i]; })
@@ -173,18 +197,19 @@ export default {
             }
           })
           .on('click', function(d, i){
-            if(active_node_array.includes(i)) {
-              d3.select(this).attr("stroke-width", function(d){ return 0; });
-              active_node_array = active_node_array.filter(n => n != i);
+            if(self.click_node_ids.includes(i)) {
+              store.commit('remove_click_node_ids', {
+                'click_node_index': i
+              });
               store.commit('remove_click_node', {
                 'click_node_index': i,
                 'index': self.id
               });
             }else{
               let n = d3.select(this);
-              active_node_array.push(i);
-              n.attr("stroke", function(d) { return d3.rgb(153,153,153,0.3); })
-               .attr("stroke-width", function(d){ return 3; });
+              store.commit('set_click_node_ids', {
+                'click_node_index': i
+              })
               store.commit('set_click_node', {
                 'click_node_index': i,
                 'index': self.id

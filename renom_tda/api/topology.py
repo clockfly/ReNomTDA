@@ -554,8 +554,6 @@ class Topology(object):
 
             search_type: How to get column index in search_dicts. "column" or "index".
         """
-        print(search_dicts)
-        print(search_type)
         if search_type not in ["and", "or"]:
             raise Exception("search_type {} is not usable.".format(search_type))
 
