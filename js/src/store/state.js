@@ -105,6 +105,7 @@ export default {
   }],
 
   // click node
+  click_node_ids: [[], []],
   click_node_data_ids: [],
 
   // show topology setting modal

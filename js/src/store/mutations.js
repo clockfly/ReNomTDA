@@ -102,6 +102,13 @@ export default {
       t.edges = [];
     }
   },
+  set_click_node_ids: function(state, payload) {
+    state.click_node_ids[payload.index].push(payload.click_node_index);
+  },
+  remove_click_node_ids: function(state, payload) {
+    let i = state.click_node_ids[payload.index].indexOf(payload.click_node_index);
+    state.click_node_ids[payload.index].splice(i, 1);
+  },
   set_click_node: function(state, payload) {
     const ids = state.topologies[payload.index].hypercubes[payload.click_node_index];
     let a = new Set(state.click_node_data_ids);
