@@ -46,6 +46,8 @@ export default {
         this.$store.commit("set_visualize_mode", {
           "val": val,
         });
+        this.$store.dispatch("create", {"index": 0});
+        this.$store.dispatch("create", {"index": 1});
       }
     }
   },
