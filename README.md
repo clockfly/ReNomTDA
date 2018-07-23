@@ -7,19 +7,14 @@ Documents are available on the ReNom.jp web site.
 
 ## Requirements
 
-- python2.7, 3.4
-- numpy 1.13.0 1.12.1
+- python 3.4
+- numpy 1.13.0
 - bottle 0.12.13
 - matplotlib 2.0.2
 - networkx 1.11
 - pandas 0.20.3
 - scikit-learn 0.18.2
 - scipy 0.19.0
-- pytest 3.0.7
-- cython 0.24
-- cuda-toolkit 8.0
-- cudnn 5.1
-- renom
 
 
 ## Install ReNomTDA package
@@ -36,20 +31,32 @@ https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-VERSION-py3-none-any.whl
 
 You can install the wheel package with pip3 command::
 
+```
 pip3 install https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-2.1.2-py3-none-any.whl
-
+```
 
 # Install from source
 
 For install ReNomTDA, download the repository from following url.
 
-	git clone https://github.com/ReNom-dev-team/ReNomTDA.git
+```
+git clone https://github.com/ReNom-dev-team/ReNomTDA.git
+```
 
-Then move to the ReNomTDA directory, and install the module using pip.
+Then move to the ReNomTDA directory, and install the modules using pip.
 
-	cd ReNomTDA
-	pip install -e .
+```
+cd ReNomTDA
+pip3 install -e .
+```
 
+Next, build javascript application files.
+
+```
+cd ReNomTDA/js
+npm install
+npm run build
+```
 
 ## License
 
