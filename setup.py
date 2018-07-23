@@ -3,7 +3,6 @@ import sys
 import re
 import shutil
 import pathlib
-import numpy
 from setuptools import find_packages, setup
 import distutils.command.build
 
