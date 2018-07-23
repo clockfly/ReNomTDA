@@ -52,7 +52,7 @@ class BuildNPM(distutils.command.build.build):
 
 setup(
     name="renom_tda",
-    version="2.1.2",
+    version="2.1.3",
     entry_points=entry_points,
     packages=['renom_tda'],
     install_requires=requires,
