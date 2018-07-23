@@ -197,19 +197,20 @@ export default {
             }
           })
           .on('click', function(d, i){
-            if(self.click_node_ids.includes(i)) {
+            if(self.click_node_ids[self.id].includes(i)) {
               store.commit('remove_click_node_ids', {
-                'click_node_index': i
+                'click_node_index': i,
+                'index': self.id
               });
               store.commit('remove_click_node', {
                 'click_node_index': i,
                 'index': self.id
               });
             }else{
-              let n = d3.select(this);
               store.commit('set_click_node_ids', {
-                'click_node_index': i
-              })
+                'click_node_index': i,
+                'index': self.id
+              });
               store.commit('set_click_node', {
                 'click_node_index': i,
                 'index': self.id
