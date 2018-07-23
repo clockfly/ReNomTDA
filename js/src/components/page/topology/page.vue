@@ -37,6 +37,10 @@ export default {
     if (this.$store.state.file_id === '') {
       this.$router.push({ path: '/' });
     }
+
+    if (this.$store.state.topologies[0].hypercubes.length == 0) {
+      this.$store.commit('set_setting_modal', {"is_show": true});
+    }
   }
 }
 </script>
