@@ -158,23 +158,23 @@ def load_file(file_id):
         body = json.dumps({
             'row': file_data.shape[0],
             'columns': file_data.shape[1],
-            'data_header': data_header.tolist(),
-            'file_data': np.array(file_data).tolist(),
-            'number_index': number_index.tolist(),
+            'data_header': _ndarray_to_list(data_header),
+            'file_data': _ndarray_to_list(np.array(file_data)),
+            'number_index': _ndarray_to_list(number_index),
             'number_columns': list(number_columns),
             'text_columns': list(text_columns),
-            'number_data': number_data.tolist(),
-            'text_data': np.array(text_data).tolist(),
-            'hist_data': hist_data.tolist(),
-            'topo_hist': topo_hist.tolist(),
-            'data_mean': data_mean.tolist(),
-            'data_var': data_var.tolist(),
-            'data_std': data_std.tolist(),
-            'data_min': data_min.tolist(),
-            'data_25percentile': data_25percentile.tolist(),
-            'data_50percentile': data_50percentile.tolist(),
-            'data_75percentile': data_75percentile.tolist(),
-            'data_max': data_max.tolist(),
+            'number_data': _ndarray_to_list(number_data),
+            'text_data': _ndarray_to_list(np.array(text_data)),
+            'hist_data': _ndarray_to_list(hist_data),
+            'topo_hist': _ndarray_to_list(topo_hist),
+            'data_mean': _ndarray_to_list(data_mean),
+            'data_var': _ndarray_to_list(data_var),
+            'data_std': _ndarray_to_list(data_std),
+            'data_min': _ndarray_to_list(data_min),
+            'data_25percentile': _ndarray_to_list(data_25percentile),
+            'data_50percentile': _ndarray_to_list(data_50percentile),
+            'data_75percentile': _ndarray_to_list(data_75percentile),
+            'data_max': _ndarray_to_list(data_max),
         })
     except Exception as e:
         body = json.dumps({"error_msg": e.args[0]})
@@ -206,6 +206,12 @@ def _concat_target(data, target, target_index):
     ret = np.concatenate([data[:, :target_index], target.reshape(-1, 1), data[:, target_index:]], axis=1)
     return ret
 
+def _ndarray_to_list(array):
+    if len(array) > 0:
+        return array.tolist()
+    else:
+        return []
+
 
 @route("/api/reduction", method="GET")
 def reduction():
@@ -233,7 +239,7 @@ def reduction():
         topology.fit_transform(lens=[REDUCTIONS[algorithm]], scaler=scaler)
 
         body = {
-            "point_cloud": topology.point_cloud.tolist(),
+            "point_cloud": _ndarray_to_list(topology.point_cloud),
         }
         r = create_response(body)
         r.set_header('Cache-Control', 'max-age=86400')
@@ -340,17 +346,17 @@ def create():
                 colors.append(topology.hex_colors)
 
         if mode < 3:
-            hypercubes = np.arange(len(topology.point_cloud)).reshape(-1, 1).tolist()
-            nodes = topology.point_cloud.tolist()
+            hypercubes = _ndarray_to_list(np.arange(len(topology.point_cloud)).reshape(-1, 1))
+            nodes = _ndarray_to_list(topology.point_cloud)
             edges = []
             node_sizes = [MIN_NODE_SIZE] * len(topology.point_cloud)
             colors = colors
         elif mode == 3:
             hypercubes = _convert_hypercubes_to_array(topology.hypercubes)
-            nodes = topology.nodes.tolist()
-            edges = topology.edges.tolist()
+            nodes = _ndarray_to_list(topology.nodes)
+            edges = _ndarray_to_list(topology.edges)
             scaler = preprocessing.MinMaxScaler(feature_range=(MIN_NODE_SIZE, MAX_NODE_SIZE))
-            node_sizes = scaler.fit_transform(topology.node_sizes).tolist()
+            node_sizes = _ndarray_to_list(scaler.fit_transform(topology.node_sizes))
             colors = colors
 
         body = {
@@ -359,7 +365,7 @@ def create():
             "edges": edges,
             "node_sizes": node_sizes,
             "colors": colors,
-            "train_index": topology.train_index.tolist()
+            "train_index": _ndarray_to_list(topology.train_index)
         }
         r = create_response(body)
         return r
