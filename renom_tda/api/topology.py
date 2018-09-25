@@ -222,6 +222,9 @@ class Topology(object):
         if self.verbose == 1:
             print("created {} nodes.".format(self.nodes.shape[0]))
 
+        if len(self.nodes) < 2:
+            raise Exception("Can't create node, please change parameters.")
+
         self.edges = self.graph_util.calc_edges()
         if self.verbose == 1:
             print("created {} edges.".format(len(self.edges)))
