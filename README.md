@@ -32,7 +32,7 @@ https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-VERSION-py3-none-any.whl
 You can install the wheel package with pip3 command::
 
 ```
-pip3 install https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-2.1.3-py3-none-any.whl
+pip3 install https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-2.1.4-py3-none-any.whl
 ```
 
 # Install from source
