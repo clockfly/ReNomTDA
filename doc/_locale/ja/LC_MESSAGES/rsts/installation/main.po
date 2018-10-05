@@ -7,32 +7,32 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReNomRL 0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-10-05 14:37+0900\n"
-"PO-Revision-Date: 2018-10-05 14:44+0900\n"
+"POT-Creation-Date: 2018-10-05 15:01+0900\n"
+"PO-Revision-Date: 2018-10-05 15:08+0900\n"
+"Last-Translator: \n"
+"Language: ja\n"
+"Language-Team: \n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.5.3\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: ja\n"
 "X-Generator: Poedit 2.1.1\n"
 
-#: ../../rsts/installation/main.rst:1
-msgid "# ReNomTDA"
+#: ../../rsts/installation/main.rst:2
+msgid "Installation"
 msgstr ""
 
-#: ../../rsts/installation/main.rst:3
+#: ../../rsts/installation/main.rst:4
 msgid "Documents are available on the ReNom.jp web site."
 msgstr "使用方法についてはReNom.jpに記載されています。"
 
-#: ../../rsts/installation/main.rst:5
-msgid "http://renom.jp/index.html"
+#: ../../rsts/installation/main.rst:6
+msgid "URL: http://renom.jp/index.html"
 msgstr ""
 
 #: ../../rsts/installation/main.rst:8
-msgid "## Requirements"
+msgid "**Requirements**"
 msgstr ""
 
 #: ../../rsts/installation/main.rst:10
@@ -68,23 +68,23 @@ msgid "scipy 0.19.0"
 msgstr ""
 
 #: ../../rsts/installation/main.rst:20
-msgid "## Install ReNomTDA package"
-msgstr ""
+msgid "**Install ReNomTDA package**"
+msgstr "**ReNomTDA パッケージのインストール**"
 
 #: ../../rsts/installation/main.rst:22
 msgid "Linux user can install ReNomIMG from Wheel package."
-msgstr "LINUX ユーザーは Wheel package からインストールできます。"
+msgstr "LINUX ユーザーは Wheel package でインストールできます。"
 
 #: ../../rsts/installation/main.rst:24
 msgid ""
 "Other os user can't install from Wheel package but can install from source."
 msgstr ""
-"その他のユーザーは Wheel package からインストールできませんが、sourceからイン"
-"ストールすることは可能です。"
+"その他ユーザーは Wheel package でインストールできないが、sourceであれば可能で"
+"す。"
 
 #: ../../rsts/installation/main.rst:26
 msgid "The Wheel package is provided at:"
-msgstr "Wheel package は以下のリンクから提供しています："
+msgstr "Wheel package は以下のリンクで提供しています："
 
 #: ../../rsts/installation/main.rst:28
 msgid ""
@@ -96,41 +96,23 @@ msgid "(VERSION is stands for actual version number e.g. 2.1.0)"
 msgstr ""
 
 #: ../../rsts/installation/main.rst:32
-msgid "You can install the wheel package with pip3 command::"
-msgstr "wheel package は pi3 コマンドでインストールすることは可能です。"
+msgid "You can install the wheel package with pip3 command:"
+msgstr "wheel package は pi3 コマンドでインストールすることは可能です："
 
-#: ../../rsts/installation/main.rst:35
-msgid ""
-"pip3 install https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-2.1.4-py3-"
-"none-any.whl ```"
-msgstr ""
+#: ../../rsts/installation/main.rst:39
+msgid "**Install from source**"
+msgstr "**Sourceでのインストール**"
 
-#: ../../rsts/installation/main.rst:38
-msgid "# Install from source"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:40
+#: ../../rsts/installation/main.rst:41
 msgid "For install ReNomTDA, download the repository from following url."
 msgstr ""
 "ReNom TDAをインストールする場合は以下のリンク先からダウンロードしてください。"
 
-#: ../../rsts/installation/main.rst:42
-msgid "``` git clone https://github.com/ReNom-dev-team/ReNomTDA.git ```"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:46
+#: ../../rsts/installation/main.rst:48
 msgid "Then move to the ReNomTDA directory, and install the modules using pip."
 msgstr ""
 "ReNom TDA のあるディレクトリに移動し、pipを使ってインストールしてください。"
 
-#: ../../rsts/installation/main.rst:48
-msgid "``` cd ReNomTDA pip3 install -e . ```"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:53
+#: ../../rsts/installation/main.rst:56
 msgid "Next, build javascript application files."
-msgstr "そのあと、javascript application file をビルドしてください。"
-
-#: ../../rsts/installation/main.rst:55
-msgid "``` cd ReNomTDA/js npm install npm run build ```"
-msgstr ""
+msgstr "インストール後、javascript application file をビルドしてください。"
