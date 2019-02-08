@@ -5,9 +5,14 @@ Documents are available on the ReNom.jp web site.
 - http://renom.jp/index.html
 
 
+## Recommended Environment
+- OS: Ubuntu 16.04
+- Browser: Google Chrome(version 63.0.3239.132)
+- Python: >=3.5
+
+
 ## Requirements
 
-- python 3.4
 - numpy 1.13.0
 - bottle 0.12.13
 - matplotlib 2.0.2
