@@ -28,7 +28,7 @@ pages:
 
 flake8:
   script:
-    - flake8 .
+    - flake8 renom_tda
 
 pytest:
   script:
