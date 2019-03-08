@@ -13,13 +13,8 @@ Documents are available on the ReNom.jp web site.
 
 ## Requirements
 
-- numpy 1.13.0
-- bottle 0.12.13
-- matplotlib 2.0.2
+- bottle 0.12.16
 - networkx 1.11
-- pandas 0.20.3
-- scikit-learn 0.18.2
-- scipy 0.19.0
 
 
 ## Install ReNomTDA package
