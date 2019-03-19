@@ -13,7 +13,7 @@ if sys.version_info < (3, 4):
 DIR = str(pathlib.Path(__file__).resolve().parent)
 
 requires = [
-    "bottle", "matplotlib", "networkx", "numpy", "pandas", "scikit-learn", "scipy", "future"
+    "bottle", "networkx"
 ]
 
 
@@ -52,7 +52,7 @@ class BuildNPM(distutils.command.build.build):
 
 setup(
     name="renom_tda",
-    version="2.1.4",
+    version="2.1.5",
     entry_points=entry_points,
     packages=['renom_tda'],
     install_requires=requires,

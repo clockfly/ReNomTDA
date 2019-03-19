@@ -19,7 +19,7 @@ from renom_tda.server.settings import ENCODING
 from renom_tda.server import wsgi_server
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.getcwd()
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
 MIN_NODE_SIZE = 3.0
