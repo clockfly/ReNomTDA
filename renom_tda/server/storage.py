@@ -7,8 +7,8 @@ import os
 import sqlite3
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STRAGE_DIR = os.path.join(BASE_DIR, ".storage")
+BASE_DIR = os.getcwd()
+STRAGE_DIR = os.path.join(BASE_DIR, "storage")
 
 
 class Storage:

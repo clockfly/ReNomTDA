@@ -8,4 +8,4 @@ ENCODING = 'utf-8'
 DATA_DIR_NAME = 'data'
 
 # storage file directory name
-STORAGE_DIR_NAME = '.storage'
+STORAGE_DIR_NAME = 'storage'
