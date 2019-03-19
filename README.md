@@ -32,7 +32,7 @@ https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-VERSION-py3-none-any.whl
 You can install the wheel package with pip3 command::
 
 ```
-pip3 install https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-2.1.4-py3-none-any.whl
+pip3 install https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-2.1.5-py3-none-any.whl
 ```
 
 # Install from source
@@ -47,16 +47,11 @@ Then move to the ReNomTDA directory, and install the modules using pip.
 
 ```
 cd ReNomTDA
-pip3 install -e .
+pip install -r requirements.txt
+python setup.py build
+pip install -e .
 ```
 
-Next, build javascript application files.
-
-```
-cd ReNomTDA/js
-npm install
-npm run build
-```
 
 ## License
 
