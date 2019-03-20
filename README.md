@@ -1,4 +1,4 @@
-# ReNomTDA
+# ReNomTDA v2.1.5 beta
 
 Documents are available on the ReNom.jp web site.
 
@@ -27,12 +27,12 @@ The Wheel package is provided at:
 
 https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-VERSION-py3-none-any.whl
 
-(VERSION is stands for actual version number e.g. 2.1.0)
+(VERSION is stands for actual version number e.g. 2.1.5)
 
 You can install the wheel package with pip3 command::
 
 ```
-pip3 install https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-2.1.5-py3-none-any.whl
+pip install https://grid-devs.gitlab.io/ReNomTDA/bin/renom_tda-2.1.5-py3-none-any.whl
 ```
 
 # Install from source
